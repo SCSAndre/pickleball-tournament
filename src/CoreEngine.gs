@@ -56,8 +56,9 @@ function generateRoundRobinSchedule(players) {
 }
 
 /**
- * Reorders matches greedily so no player appears in two consecutive match slots.
- * Each player gets at least one match of rest between their appearances.
+ * Reorders matches to minimise consecutive player appearances.
+ * Scores each candidate by overlap with the last 2 placed matches and
+ * picks the lowest-overlap option, breaking ties by earliest position.
  * @param {Array<string[]>} matches
  * @returns {Array<string[]>}
  */
@@ -66,15 +67,20 @@ function reorderForPlayerRest_(matches) {
   const remaining = [...matches];
 
   while (remaining.length > 0) {
-    const lastPlayers = ordered.length > 0
-      ? new Set(ordered[ordered.length - 1])
-      : new Set();
+    // Build set of recently-active players (last 2 matches)
+    const recent = new Set(ordered.slice(-2).flatMap(m => m));
 
-    // Pick the first match that shares no players with the previous match
-    let bestIdx = remaining.findIndex(m => !m.some(p => lastPlayers.has(p)));
+    let bestIdx     = 0;
+    let bestOverlap = Infinity;
 
-    // Fallback: if every remaining match shares a player, just take the next one
-    if (bestIdx === -1) bestIdx = 0;
+    for (let i = 0; i < remaining.length; i++) {
+      const overlap = remaining[i].filter(p => recent.has(p)).length;
+      if (overlap < bestOverlap) {
+        bestOverlap = overlap;
+        bestIdx     = i;
+        if (overlap === 0) break; // perfect fit — stop searching
+      }
+    }
 
     ordered.push(remaining[bestIdx]);
     remaining.splice(bestIdx, 1);
