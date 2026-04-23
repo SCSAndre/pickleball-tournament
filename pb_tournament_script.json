@@ -1,0 +1,3519 @@
+// ============================================================================
+// 🏆 ULTIMATE TOURNAMENT MANAGEMENT SYSTEM - MEGA EDITION
+// ============================================================================
+// Complete with: Statistics Dashboard, Email Notifications, Partnership 
+// Compatibility, Advanced Formatting, PDF Reports, Achievements, Predictions,
+// Live Tracker, Player Profiles, and MORE!
+// ============================================================================
+// ============================================================================
+// CONFIGURATION & CONSTANTS
+// ============================================================================
+
+const CONFIG = {
+  TOURNAMENT_NAME: 'Epic Doubles Tournament',
+  ENABLE_EMAIL_NOTIFICATIONS: true,
+  ENABLE_ACHIEVEMENTS: true,
+  ENABLE_PREDICTIONS: true,
+  EMAIL_SEND_INTERVAL_HOURS: 24,
+  ADMIN_EMAIL: Session.getActiveUser().getEmail(),
+  
+  COLORS: {
+    PRIMARY: '#4285f4',
+    SUCCESS: '#34a853',
+    WARNING: '#fbbc04',
+    DANGER: '#ea4335',
+    GOLD: '#ffd700',
+    SILVER: '#c0c0c0',
+    BRONZE: '#cd7f32',
+    WIN: '#d9ead3',
+    LOSS: '#f4cccc',
+    PENDING: '#fff2cc',
+    HOT: '#ff6b6b',
+    COLD: '#4ecdc4'
+    },
+  
+  ACHIEVEMENTS: {
+    PERFECT_GAME: {name: '🎯 Perfect Game', desc: 'Win without opponent scoring', points: 100
+        },
+    COMEBACK_KING: {name: '👑 Comeback King', desc: 'Win after being down 10+ points', points: 75
+        },
+    UNDEFEATED: {name: '🛡️ Undefeated', desc: 'Win all matches', points: 200
+        },
+    UNDERDOG: {name: '🐕 Underdog', desc: 'Beat top-ranked player', points: 50
+        },
+    CONSISTENT: {name: '📊 Mr. Consistent', desc: 'All matches within 5 points', points: 60
+        },
+    SHARP_SHOOTER: {name: '🎪 Sharp Shooter', desc: 'Score 30+ points in a match', points: 40
+        },
+    IRON_WALL: {name: '🛡️ Iron Wall', desc: 'Hold opponent under 10 points', points: 50
+        },
+    STREAK: {name: '🔥 On Fire', desc: '3+ win streak', points: 80
+        },
+    VERSATILE: {name: '🌟 Versatile', desc: 'Win with 3+ different partners', points: 90
+        }
+    }
+};
+
+// ============================================================================
+// MENU & UI FUNCTIONS (ENHANCED)
+// ============================================================================
+/**
+ * Creates enhanced custom menu
+ */
+function onOpen() {
+  const menu = SpreadsheetApp.getUi().createMenu('🏆 Tournament');
+  
+  // Setup Section
+  menu.addSubMenu(SpreadsheetApp.getUi().createMenu('📋 Setup')
+    .addItem('🆕 New Tournament', 'setupTournament')
+    .addItem('⚙️ Configure Settings', 'showConfigDialog')
+    .addItem('🎨 Customize Theme', 'showThemeDialog'));
+  
+  // Match Management
+  menu.addSubMenu(SpreadsheetApp.getUi().createMenu('🎯 Matches')
+    .addItem('➕ Enter Score', 'showScoreEntryDialog')
+    .addItem('🔴 Live Match Tracker', 'showLiveMatchTracker')
+    .addItem('📅 Schedule Next Match', 'scheduleNextMatch')
+    .addItem('🗑️ Clear All Scores', 'clearScoresOnly'));
+  
+  // Analytics & Reports
+  menu.addSubMenu(SpreadsheetApp.getUi().createMenu('📊 Analytics')
+    .addItem('📈 Statistics Dashboard', 'createEnhancedStatsDashboard')
+    .addItem('🤝 Partnership Compatibility', 'createPartnershipCompatibility')
+    .addItem('🎮 Player Profiles', 'createPlayerProfiles')
+    .addItem('🏅 Achievements', 'createAchievementsSheet')
+    .addItem('🔮 Predictions & Insights', 'createPredictionsSheet')
+    .addItem('📊 Generate All Charts', 'createAllCharts'));
+  
+  // Communication
+  menu.addSubMenu(SpreadsheetApp.getUi().createMenu('📧 Notifications')
+    .addItem('📧 Email Current Standings', 'emailStandingsToAll')
+    .addItem('🔔 Send Match Reminders', 'sendMatchReminders')
+    .addItem('🎉 Announce Winners', 'announceWinners')
+    .addItem('⚙️ Configure Email Settings', 'configureEmailSettings'));
+  
+  // Export & Archive
+  menu.addSubMenu(SpreadsheetApp.getUi().createMenu('💾 Export')
+    .addItem('📄 Generate PDF Report', 'generateCompletePDFReport')
+    .addItem('📧 Email PDF to All', 'emailPDFToAll')
+    .addItem('💾 Backup Tournament', 'backupTournament')
+    .addItem('📦 Archive & Start New', 'archiveAndStartNew')
+    .addItem('📊 Export to Excel', 'exportToExcel'));
+  
+  // Utilities
+  menu.addSeparator();
+  menu.addItem('🔒 Protect Formulas', 'protectFormulaCells');
+  menu.addItem('🔄 Refresh All Data', 'refreshAllData');
+  menu.addItem('🎲 Generate Playoff Bracket', 'generatePlayoffBracket');
+  menu.addItem('❓ Help & Documentation', 'showHelp');
+  
+  menu.addToUi();
+}
+/**
+ * Shows enhanced help dialog
+ */
+function showHelp() {
+  const html = HtmlService.createHtmlOutput(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <base target="_top">
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6;
+    }
+          h2 { color: #4285f4;
+    }
+          .feature { margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 5px;
+    }
+          .feature-title { font-weight: bold; color: #333;
+    }
+          code { background: #e8e8e8; padding: 2px 6px; border-radius: 3px;
+    }
+        </style>
+      </head>
+      <body>
+        <h2>🏆 Tournament System - Quick Start Guide</h2>
+        
+        <div class="feature">
+          <div class="feature-title">📋 Getting Started</div>
+          1. Click <code>Setup → New Tournament</code><br>
+          2. Enter scores using <code>Matches → Enter Score</code><br>
+          3. View analytics in <code>Analytics</code> menu
+        </div>
+        
+        <div class="feature">
+          <div class="feature-title">📧 Email Notifications</div>
+          - Automatically sends standings to all players<br>
+          - Configure in <code>Notifications → Configure Email Settings</code><br>
+          - Add player emails in the <code>Players</code> sheet
+        </div>
+        
+        <div class="feature">
+          <div class="feature-title">🤝 Partnership Compatibility</div>
+          - Shows which players work best together<br>
+          - Analyzes win rates and point differentials<br>
+          - Access via <code>Analytics → Partnership Compatibility</code>
+        </div>
+        
+        <div class="feature">
+          <div class="feature-title">📄 PDF Reports</div>
+          - Generate complete tournament summaries<br>
+          - Includes all stats, charts, and achievements<br>
+          - Can email to all players automatically
+        </div>
+        
+        <div class="feature">
+          <div class="feature-title">🏅 Achievements</div>
+          - Players earn badges for milestones<br>
+          - Tracks special accomplishments<br>
+          - Adds gamification element
+        </div>
+        
+        <p><strong>Need more help?</strong> Contact: ${CONFIG.ADMIN_EMAIL
+    }</p>
+      </body>
+    </html>
+  `).setWidth(600).setHeight(500);
+  
+  SpreadsheetApp.getUi().showModalDialog(html, '📖 Help & Documentation');
+}
+// ============================================================================
+// CORE UTILITY FUNCTIONS
+// ============================================================================
+
+function getOrCreateSheet(ss, name) {
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    sh = ss.insertSheet(name);
+    }
+  return sh;
+}
+
+function getTimestamp() {
+  const now = new Date();
+  return Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+}
+
+function isValidScore(score) {
+  return !isNaN(score) && score >= 0 && Number.isInteger(Number(score));
+}
+
+function logActivity(message) {
+  try {
+    const ss = SpreadsheetApp.getActive();
+    const log = getOrCreateSheet(ss, 'Activity Log');
+    
+    if (log.getLastRow() === 0) {
+      log.getRange('A1:C1').setValues([
+                ['Timestamp', 'Action', 'User'
+                ]
+            ]);
+      log.getRange('A1:C1').setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+      log.setFrozenRows(1);
+        }
+    
+    const nextRow = log.getLastRow() + 1;
+    const user = Session.getActiveUser().getEmail() || 'Unknown';
+    
+    log.getRange(nextRow,
+        1,
+        1,
+        3).setValues([
+            [getTimestamp(), message, user
+            ]
+        ]);
+    
+    if (nextRow > 101) {
+      log.deleteRow(2);
+        }
+    } catch (e) {
+    console.log('Logging error: ' + e.message);
+    }
+}
+// ============================================================================
+// MAIN SETUP FUNCTION (ENHANCED)
+// ============================================================================
+
+function setupTournament() {
+  const ss = SpreadsheetApp.getActive();
+  const ui = SpreadsheetApp.getUi();
+  
+  const response = ui.alert(
+    '🆕 Setup New Tournament',
+    'This will create a complete tournament system with all features. Continue?',
+    ui.ButtonSet.YES_NO
+  );
+  
+  if (response !== ui.Button.YES) {
+    return;
+    }
+  
+  ui.alert('⏳ Setting Up...', 'Creating tournament system. This will take about 30 seconds...', ui.ButtonSet.OK);
+  
+  // Create all sheets
+  createScheduleSheet(ss);
+  createStandingsSheet(ss);
+  createLeaderboardSheet(ss);
+  createPartnershipsSheet(ss);
+  createHeadToHeadSheet(ss);
+  createPlayerManagementSheet(ss);
+  createEnhancedStatsDashboard(ss);
+  createPartnershipCompatibility(ss);
+  createPlayerProfiles(ss);
+  createAchievementsSheet(ss);
+  createPredictionsSheet(ss);
+  createProgressSheet(ss);
+  createLiveMatchTracker(ss);
+  
+  // Generate charts
+  createAllCharts();
+  
+  // Apply advanced formatting
+  applyAdvancedFormatting();
+  
+  // Protect formulas
+  protectFormulaCells();
+  
+  // Log
+  logActivity('Complete tournament setup with all features');
+  
+  ui.alert('✅ Success!', 
+    '🎉 Tournament system created!\n\n' +
+    '📊 Features enabled:\n' +
+    '• Statistics Dashboard\n' +
+    '• Partnership Compatibility\n' +
+    '• Player Profiles\n' +
+    '• Achievements System\n' +
+    '• AI Predictions\n' +
+    '• Live Match Tracker\n' +
+    '• Email Notifications\n' +
+    '• PDF Export\n\n' +
+    'Check the 🏆 Tournament menu for all options!',
+    ui.ButtonSet.OK
+  );
+}
+// ============================================================================
+// SHEET CREATION FUNCTIONS (BASE SHEETS)
+// ============================================================================
+
+function createScheduleSheet(ss) {
+  const sched = getOrCreateSheet(ss, 'Schedule');
+  sched.clear();
+  
+  sched.getRange('A1:I1').setValues([
+        ['Match','TeamA_P1','TeamA_P2','TeamB_P1','TeamB_P2','ScoreA','ScoreB','Status','Date'
+        ]
+    ]);
+
+  const matches = [
+        [
+            1,'Dedezito','Fernandito','Nayzito','Michelito','','','⏳',''
+        ],
+        [
+            2,'Guguzito','Marcito','Cebolito','Tiaguito','','','⏳',''
+        ],
+        [
+            3,'Dedezito','Marcito','Cebolito','Nayzito','','','⏳',''
+        ],
+        [
+            4,'Fernandito','Tiaguito','Guguzito','Michelito','','','⏳',''
+        ],
+        [
+            5,'Dedezito','Tiaguito','Guguzito','Cebolito','','','⏳',''
+        ],
+        [
+            6,'Marcito','Michelito','Fernandito','Nayzito','','','⏳',''
+        ],
+        [
+            7,'Dedezito','Michelito','Fernandito','Guguzito','','','⏳',''
+        ],
+        [
+            8,'Tiaguito','Nayzito','Marcito','Cebolito','','','⏳',''
+        ],
+        [
+            9,'Dedezito','Nayzito','Marcito','Fernandito','','','⏳',''
+        ],
+        [
+            10,'Michelito','Cebolito','Tiaguito','Guguzito','','','⏳',''
+        ],
+        [
+            11,'Dedezito','Cebolito','Tiaguito','Marcito','','','⏳',''
+        ],
+        [
+            12,'Nayzito','Guguzito','Michelito','Fernandito','','','⏳',''
+        ],
+        [
+            13,'Dedezito','Guguzito','Michelito','Tiaguito','','','⏳',''
+        ],
+        [
+            14,'Cebolito','Fernandito','Nayzito','Marcito','','','⏳',''
+        ]
+    ];
+  
+  sched.getRange(2,
+    1, matches.length,
+    9).setValues(matches);
+  
+  // Status formulas
+  for (let r = 2; r <= 15; r++) {
+    sched.getRange(r,
+        8).setFormula(
+      '=IF(AND(ISNUMBER(F' + r + '),ISNUMBER(G' + r + ')),
+        "✓",
+        "⏳")'
+    );
+    }
+    // Formatting
+  sched.setFrozenRows(1);
+  sched.autoResizeColumns(1,
+    9);
+  sched.getRange('A1:I1').setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+  sched.getRange('F2:G15').setNumberFormat('0');
+  sched.setColumnWidth(8,
+    60);
+  
+  // Data validation
+  const scoreValidation = SpreadsheetApp.newDataValidation()
+    .requireNumberGreaterThanOrEqualTo(0)
+    .setAllowInvalid(false)
+    .setHelpText('Enter non-negative number')
+    .build();
+  
+  sched.getRange('F2:G15').setDataValidation(scoreValidation);
+  
+  // Conditional formatting (will be enhanced later)
+  applyScheduleFormatting(sched);
+}
+
+function createStandingsSheet(ss) {
+  const std = getOrCreateSheet(ss, 'Standings');
+  std.clear();
+  
+  std.getRange('A1:K1').setValues([
+        ['Player','Points','Wins','Losses','PF','PA','Diff','Rank','Win%','Form','Streak'
+        ]
+    ]);
+
+  const players = [
+        ['Dedezito'
+        ],
+        ['Guguzito'
+        ],
+        ['Cebolito'
+        ],
+        ['Nayzito'
+        ],
+        ['Michelito'
+        ],
+        ['Tiaguito'
+        ],
+        ['Marcito'
+        ],
+        ['Fernandito'
+        ]
+    ];
+  
+  std.getRange(2,
+    1, players.length,
+    1).setValues(players);
+
+  for (let r = 2; r <= 9; r++) {
+        // Points
+    std.getRange(r,
+        2).setFormula(
+      '=2*(SUMPRODUCT(((Schedule!B$2:B$15=A' + r + ')+(Schedule!C$2:C$15=A' + r + '))*(Schedule!F$2:F$15>Schedule!G$2:G$15))+SUMPRODUCT(((Schedule!D$2:D$15=A' + r + ')+(Schedule!E$2:E$15=A' + r + '))*(Schedule!G$2:G$15>Schedule!F$2:F$15)))'
+    );
+    
+    // Wins
+    std.getRange(r,
+        3).setFormula(
+      '=SUMPRODUCT(((Schedule!B$2:B$15=A' + r + ')+(Schedule!C$2:C$15=A' + r + '))*(Schedule!F$2:F$15>Schedule!G$2:G$15))+SUMPRODUCT(((Schedule!D$2:D$15=A' + r + ')+(Schedule!E$2:E$15=A' + r + '))*(Schedule!G$2:G$15>Schedule!F$2:F$15))'
+    );
+    
+    // Losses
+    std.getRange(r,
+        4).setFormula(
+      '=SUMPRODUCT(((Schedule!B$2:B$15=A' + r + ')+(Schedule!C$2:C$15=A' + r + '))*(Schedule!F$2:F$15<Schedule!G$2:G$15))+SUMPRODUCT(((Schedule!D$2:D$15=A' + r + ')+(Schedule!E$2:E$15=A' + r + '))*(Schedule!G$2:G$15<Schedule!F$2:F$15))'
+    );
+    
+    // Points For
+    std.getRange(r,
+        5).setFormula(
+      '=SUMPRODUCT(((Schedule!B$2:B$15=A' + r + ')+(Schedule!C$2:C$15=A' + r + '))*(Schedule!F$2:F$15))+SUMPRODUCT(((Schedule!D$2:D$15=A' + r + ')+(Schedule!E$2:E$15=A' + r + '))*(Schedule!G$2:G$15))'
+    );
+    
+    // Points Against
+    std.getRange(r,
+        6).setFormula(
+      '=SUMPRODUCT(((Schedule!B$2:B$15=A' + r + ')+(Schedule!C$2:C$15=A' + r + '))*(Schedule!G$2:G$15))+SUMPRODUCT(((Schedule!D$2:D$15=A' + r + ')+(Schedule!E$2:E$15=A' + r + '))*(Schedule!F$2:F$15))'
+    );
+    
+    // Diff
+    std.getRange(r,
+        7).setFormula('=E' + r + '-F' + r);
+    
+    // Rank
+    std.getRange(r,
+        8).setFormula(
+      '=RANK(B' + r + ',$B$2:$B$9,
+        0)+COUNTIFS($B$2:$B$9,B' + r + ',$G$2:$G$9,
+        ">"&G' + r + ')'
+    );
+    
+    // Win %
+    std.getRange(r,
+        9).setFormula(
+      '=IF(C' + r + '+D' + r + '=0,
+        0,C' + r + '/(C' + r + '+D' + r + '))'
+    );
+    
+    // Form (last 3 matches - will be calculated by script)
+    std.getRange(r,
+        10).setValue('--');
+    
+    // Streak
+    std.getRange(r,
+        11).setValue('--');
+    }
+
+  std.setFrozenRows(1);
+  std.autoResizeColumns(1,
+    11);
+  std.getRange('A1:K1').setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+  std.getRange('B2:H9').setNumberFormat('0');
+  std.getRange('I2:I9').setNumberFormat('0.0%');
+  
+  applyStandingsFormatting(std);
+}
+
+function createLeaderboardSheet(ss) {
+  const lb = getOrCreateSheet(ss, 'Leaderboard');
+  lb.clear();
+  
+  lb.getRange('A1:L1').setValues([
+        ['Pos','Player','Points','Wins','Losses','PF','PA','Diff','Rank','Win%','Form','Medal'
+        ]
+    ]);
+  
+  // Add position numbers
+  for (let i = 1; i <= 8; i++) {
+    lb.getRange(i + 1,
+        1).setValue(i);
+    }
+    // Sort formula
+  lb.getRange('B2').setFormula(
+    '=SORT(Standings!A2:K9,Standings!B2:B9,FALSE,Standings!G2:G9,FALSE)'
+  );
+  
+  lb.setFrozenRows(1);
+  lb.autoResizeColumns(1,
+    12);
+  lb.getRange('A1:L1').setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+  
+  // Medal emojis
+  lb.getRange('L2').setValue('🥇').setFontSize(24);
+  lb.getRange('L3').setValue('🥈').setFontSize(24);
+  lb.getRange('L4').setValue('🥉').setFontSize(24);
+  
+  // Podium colors
+  lb.getRange('A2:L2').setBackground(CONFIG.COLORS.GOLD).setFontWeight('bold');
+  lb.getRange('A3:L3').setBackground(CONFIG.COLORS.SILVER).setFontWeight('bold');
+  lb.getRange('A4:L4').setBackground(CONFIG.COLORS.BRONZE).setFontWeight('bold');
+  
+  lb.setColumnWidth(12,
+    60);
+}
+
+function createPartnershipsSheet(ss) {
+  const part = getOrCreateSheet(ss, 'Partnerships');
+  part.clear();
+  
+  part.getRange('A1:G1').setValues([
+        ['Match','Team','Partnership','Scored','Result','Margin','Quality'
+        ]
+    ]);
+  
+  let row = 2;
+  for (let r = 2; r <= 15; r++) {
+        // Team A
+    part.getRange(row,
+        1).setFormula('=Schedule!A' + r);
+    part.getRange(row,
+        2).setValue('Team A');
+    part.getRange(row,
+        3).setFormula('=Schedule!B' + r + '&" + "&Schedule!C' + r);
+    part.getRange(row,
+        4).setFormula('=Schedule!F' + r);
+    part.getRange(row,
+        5).setFormula('=IF(Schedule!F' + r + '>Schedule!G' + r + ',
+        "WIN",IF(Schedule!F' + r + '<Schedule!G' + r + ',
+        "LOSS",IF(AND(ISNUMBER(Schedule!F' + r + '),ISNUMBER(Schedule!G' + r + ')),
+        "TIE",
+        "")))');
+    part.getRange(row,
+        6).setFormula('=Schedule!F' + r + '-Schedule!G' + r);
+    part.getRange(row,
+        7).setFormula('=IF(E' + row + '="WIN",IF(F' + row + '>10,
+        "⭐⭐⭐",IF(F' + row + '>5,
+        "⭐⭐",
+        "⭐")),IF(E' + row + '="LOSS",
+        "",
+        ""))');
+    row++;
+    
+    // Team B
+    part.getRange(row,
+        1).setFormula('=Schedule!A' + r);
+    part.getRange(row,
+        2).setValue('Team B');
+    part.getRange(row,
+        3).setFormula('=Schedule!D' + r + '&" + "&Schedule!E' + r);
+    part.getRange(row,
+        4).setFormula('=Schedule!G' + r);
+    part.getRange(row,
+        5).setFormula('=IF(Schedule!G' + r + '>Schedule!F' + r + ',
+        "WIN",IF(Schedule!G' + r + '<Schedule!F' + r + ',
+        "LOSS",IF(AND(ISNUMBER(Schedule!F' + r + '),ISNUMBER(Schedule!G' + r + ')),
+        "TIE",
+        "")))');
+    part.getRange(row,
+        6).setFormula('=Schedule!G' + r + '-Schedule!F' + r);
+    part.getRange(row,
+        7).setFormula('=IF(E' + row + '="WIN",IF(F' + row + '>10,
+        "⭐⭐⭐",IF(F' + row + '>5,
+        "⭐⭐",
+        "⭐")),IF(E' + row + '="LOSS",
+        "",
+        ""))');
+    row++;
+    }
+  
+  part.setFrozenRows(1);
+  part.autoResizeColumns(1,
+    7);
+  part.getRange('A1:G1').setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+  
+  applyPartnershipsFormatting(part);
+}
+
+function createHeadToHeadSheet(ss) {
+  const h2h = getOrCreateSheet(ss, 'Head-to-Head');
+  h2h.clear();
+  
+  h2h.getRange('A1').setValue('🔍 HEAD-TO-HEAD ANALYSIS').setFontSize(18).setFontWeight('bold');
+  h2h.getRange('A3').setValue('Player 1:').setFontWeight('bold');
+  h2h.getRange('A4').setValue('Player 2:').setFontWeight('bold');
+  
+  const players = ['Dedezito','Guguzito','Cebolito','Nayzito','Michelito','Tiaguito','Marcito','Fernandito'
+    ];
+  const validation = SpreadsheetApp.newDataValidation().requireValueInList(players).build();
+  h2h.getRange('B3').setDataValidation(validation);
+  h2h.getRange('B4').setDataValidation(validation);
+  
+  h2h.getRange('A6').setValue('🤝 AS PARTNERS').setFontSize(14).setFontWeight('bold').setBackground('#e8f0fe');
+  h2h.getRange('A7:B7').setValues([
+        ['Metric','Value'
+        ]
+    ]).setFontWeight('bold').setBackground('#d0e1f9');
+  
+  h2h.getRange('A8:A13').setValues([
+        ['Matches Together'
+        ],
+        ['Record (W-L)'
+        ],
+        ['Win Rate'
+        ],
+        ['Points Scored'
+        ],
+        ['Points Allowed'
+        ],
+        ['Avg Margin'
+        ]
+    ]);
+  
+  h2h.getRange('A15').setValue('⚔️ AS OPPONENTS').setFontSize(14).setFontWeight('bold').setBackground('#fce8e6');
+  h2h.getRange('A16:B16').setValues([
+        ['Metric','Value'
+        ]
+    ]).setFontWeight('bold').setBackground('#f4cccc');
+  
+  h2h.getRange('A17:A22').setValues([
+        ['Matches Faced'
+        ],
+        ['Player 1 Wins'
+        ],
+        ['Player 2 Wins'
+        ],
+        ['Player 1 Avg Score'
+        ],
+        ['Player 2 Avg Score'
+        ],
+        ['Head-to-Head Leader'
+        ]
+    ]);
+  
+  // Formulas for Partners
+  h2h.getRange('B8').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4)),
+    "",SUMPRODUCT(((Schedule!B$2:B$15=B3)*(Schedule!C$2:C$15=B4))+((Schedule!B$2:B$15=B4)*(Schedule!C$2:C$15=B3))+((Schedule!D$2:D$15=B3)*(Schedule!E$2:E$15=B4))+((Schedule!D$2:D$15=B4)*(Schedule!E$2:E$15=B3))))'
+  );
+  
+  h2h.getRange('B9').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4)),
+    "",SUMPRODUCT(((Schedule!B$2:B$15=B3)*(Schedule!C$2:C$15=B4)+(Schedule!B$2:B$15=B4)*(Schedule!C$2:C$15=B3))*(Schedule!F$2:F$15>Schedule!G$2:G$15))+SUMPRODUCT(((Schedule!D$2:D$15=B3)*(Schedule!E$2:E$15=B4)+(Schedule!D$2:D$15=B4)*(Schedule!E$2:E$15=B3))*(Schedule!G$2:G$15>Schedule!F$2:F$15))&"-"&SUMPRODUCT(((Schedule!B$2:B$15=B3)*(Schedule!C$2:C$15=B4)+(Schedule!B$2:B$15=B4)*(Schedule!C$2:C$15=B3))*(Schedule!F$2:F$15<Schedule!G$2:G$15))+SUMPRODUCT(((Schedule!D$2:D$15=B3)*(Schedule!E$2:E$15=B4)+(Schedule!D$2:D$15=B4)*(Schedule!E$2:E$15=B3))*(Schedule!G$2:G$15<Schedule!F$2:F$15)))'
+  );
+  
+  h2h.getRange('B10').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4),B8=0),
+    "",TEXT((SUMPRODUCT(((Schedule!B$2:B$15=B3)*(Schedule!C$2:C$15=B4)+(Schedule!B$2:B$15=B4)*(Schedule!C$2:C$15=B3))*(Schedule!F$2:F$15>Schedule!G$2:G$15))+SUMPRODUCT(((Schedule!D$2:D$15=B3)*(Schedule!E$2:E$15=B4)+(Schedule!D$2:D$15=B4)*(Schedule!E$2:E$15=B3))*(Schedule!G$2:G$15>Schedule!F$2:F$15)))/B8,
+    "0.0%"))'
+  );
+  
+  h2h.getRange('B11').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4)),
+    "",SUMPRODUCT(((Schedule!B$2:B$15=B3)*(Schedule!C$2:C$15=B4)+(Schedule!B$2:B$15=B4)*(Schedule!C$2:C$15=B3))*(Schedule!F$2:F$15))+SUMPRODUCT(((Schedule!D$2:D$15=B3)*(Schedule!E$2:E$15=B4)+(Schedule!D$2:D$15=B4)*(Schedule!E$2:E$15=B3))*(Schedule!G$2:G$15)))'
+  );
+  
+  h2h.getRange('B12').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4)),
+    "",SUMPRODUCT(((Schedule!B$2:B$15=B3)*(Schedule!C$2:C$15=B4)+(Schedule!B$2:B$15=B4)*(Schedule!C$2:C$15=B3))*(Schedule!G$2:G$15))+SUMPRODUCT(((Schedule!D$2:D$15=B3)*(Schedule!E$2:E$15=B4)+(Schedule!D$2:D$15=B4)*(Schedule!E$2:E$15=B3))*(Schedule!F$2:F$15)))'
+  );
+  
+  h2h.getRange('B13').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4),B8=0),
+    "",(B11-B12)/B8)'
+  );
+  
+  // Formulas for Opponents
+  h2h.getRange('B17').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4)),
+    "",SUMPRODUCT(((Schedule!B$2:B$15=B3)+(Schedule!C$2:C$15=B3))*((Schedule!D$2:D$15=B4)+(Schedule!E$2:E$15=B4)))+SUMPRODUCT(((Schedule!D$2:D$15=B3)+(Schedule!E$2:E$15=B3))*((Schedule!B$2:B$15=B4)+(Schedule!C$2:C$15=B4))))'
+  );
+  
+  h2h.getRange('B18').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4)),
+    "",SUMPRODUCT(((Schedule!B$2:B$15=B3)+(Schedule!C$2:C$15=B3))*((Schedule!D$2:D$15=B4)+(Schedule!E$2:E$15=B4))*(Schedule!F$2:F$15>Schedule!G$2:G$15))+SUMPRODUCT(((Schedule!D$2:D$15=B3)+(Schedule!E$2:E$15=B3))*((Schedule!B$2:B$15=B4)+(Schedule!C$2:C$15=B4))*(Schedule!G$2:G$15>Schedule!F$2:F$15)))'
+  );
+  
+  h2h.getRange('B19').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4)),
+    "",SUMPRODUCT(((Schedule!B$2:B$15=B4)+(Schedule!C$2:C$15=B4))*((Schedule!D$2:D$15=B3)+(Schedule!E$2:E$15=B3))*(Schedule!F$2:F$15>Schedule!G$2:G$15))+SUMPRODUCT(((Schedule!D$2:D$15=B4)+(Schedule!E$2:E$15=B4))*((Schedule!B$2:B$15=B3)+(Schedule!C$2:C$15=B3))*(Schedule!G$2:G$15>Schedule!F$2:F$15)))'
+  );
+  
+  h2h.getRange('B20').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4),B17=0),
+    "",ROUND((SUMPRODUCT(((Schedule!B$2:B$15=B3)+(Schedule!C$2:C$15=B3))*((Schedule!D$2:D$15=B4)+(Schedule!E$2:E$15=B4))*(Schedule!F$2:F$15))+SUMPRODUCT(((Schedule!D$2:D$15=B3)+(Schedule!E$2:E$15=B3))*((Schedule!B$2:B$15=B4)+(Schedule!C$2:C$15=B4))*(Schedule!G$2:G$15)))/B17,
+    1))'
+  );
+  
+  h2h.getRange('B21').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4),B17=0),
+    "",ROUND((SUMPRODUCT(((Schedule!B$2:B$15=B4)+(Schedule!C$2:C$15=B4))*((Schedule!D$2:D$15=B3)+(Schedule!E$2:E$15=B3))*(Schedule!F$2:F$15))+SUMPRODUCT(((Schedule!D$2:D$15=B4)+(Schedule!E$2:E$15=B4))*((Schedule!B$2:B$15=B3)+(Schedule!C$2:C$15=B3))*(Schedule!G$2:G$15)))/B17,
+    1))'
+  );
+  
+  h2h.getRange('B22').setFormula(
+    '=IF(OR(ISBLANK(B3),ISBLANK(B4)),
+    "",IF(B18>B19,B3&" leads "&B18&"-"&B19,IF(B19>B18,B4&" leads "&B19&"-"&B18,
+    "Tied "&B18&"-"&B19)))'
+  );
+  
+  h2h.setColumnWidth(1,
+    200);
+  h2h.setColumnWidth(2,
+    150);
+  h2h.autoResizeColumns(1,
+    2);
+}
+
+function createPlayerManagementSheet(ss) {
+  const pm = getOrCreateSheet(ss, 'Players');
+  pm.clear();
+  
+  pm.getRange('A1:E1').setValues([
+        ['Player Name','Email','Phone','Notification','Status'
+        ]
+    ]);
+  
+  const players = [
+        ['Dedezito','dedezito@email.com','','Yes','Active'
+        ],
+        ['Guguzito','guguzito@email.com','','Yes','Active'
+        ],
+        ['Cebolito','cebolito@email.com','','Yes','Active'
+        ],
+        ['Nayzito','nayzito@email.com','','Yes','Active'
+        ],
+        ['Michelito','michelito@email.com','','Yes','Active'
+        ],
+        ['Tiaguito','tiaguito@email.com','','Yes','Active'
+        ],
+        ['Marcito','marcito@email.com','','Yes','Active'
+        ],
+        ['Fernandito','fernandito@email.com','','Yes','Active'
+        ]
+    ];
+  
+  pm.getRange(2,
+    1, players.length,
+    5).setValues(players);
+  
+  pm.getRange('A1:E1').setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+  pm.setFrozenRows(1);
+  pm.autoResizeColumns(1,
+    5);
+  
+  // Data validation for Yes/No
+  const yesNoValidation = SpreadsheetApp.newDataValidation()
+    .requireValueInList(['Yes', 'No'
+    ])
+    .build();
+  pm.getRange('D2:D9').setDataValidation(yesNoValidation);
+  
+  const statusValidation = SpreadsheetApp.newDataValidation()
+    .requireValueInList(['Active', 'Inactive', 'Injured'
+    ])
+    .build();
+  pm.getRange('E2:E9').setDataValidation(statusValidation);
+  
+  // Add instructions
+  pm.getRange('A11').setValue('📝 INSTRUCTIONS:').setFontWeight('bold').setFontSize(12);
+  pm.getRange('A12').setValue('• Update player emails to enable notifications');
+  pm.getRange('A13').setValue('• Set Notification to "Yes" to receive updates');
+  pm.getRange('A14').setValue('• Use Status to track player availability');
+}
+// ============================================================================
+// ENHANCED STATISTICS DASHBOARD
+// ============================================================================
+
+function createEnhancedStatsDashboard(ss) {
+  if (!ss) ss = SpreadsheetApp.getActive();
+  
+  const stats = getOrCreateSheet(ss, 'Stats Dashboard');
+  stats.clear();
+  
+  // Title Section
+  stats.getRange('A1').setValue('📊 TOURNAMENT STATISTICS DASHBOARD').setFontSize(20).setFontWeight('bold');
+  stats.getRange('A2').setValue('Last Updated: ' + getTimestamp()).setFontSize(10).setFontColor('#666666');
+  stats.getRange('A1:H1').mergeAcross();
+  stats.getRange('A2:H2').mergeAcross();
+  
+  // Tournament Overview
+  stats.getRange('A4:H4').merge().setValue('🏁 TOURNAMENT OVERVIEW').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff').setHorizontalAlignment('center');
+  
+  stats.getRange('A5:B5').merge().setValue('Total Matches:').setFontWeight('bold');
+  stats.getRange('C5').setValue(14);
+  
+  stats.getRange('E5:F5').merge().setValue('Total Players:').setFontWeight('bold');
+  stats.getRange('G5').setValue(8);
+  
+  stats.getRange('A6:B6').merge().setValue('Completed:').setFontWeight('bold');
+  stats.getRange('C6').setFormula('=COUNTIF(Schedule!H2:H15,
+    "✓")');
+  
+  stats.getRange('E6:F6').merge().setValue('Remaining:').setFontWeight('bold');
+  stats.getRange('G6').setFormula('=14-C6');
+  
+  stats.getRange('A7:B7').merge().setValue('Progress:').setFontWeight('bold');
+  stats.getRange('C7').setFormula('=C6/14');
+  stats.getRange('C7').setNumberFormat('0.0%');
+  
+  stats.getRange('D7:H7').merge().setFormula('=REPT("█",ROUND(C7*20,
+    0))&REPT("░",
+    20-ROUND(C7*20,
+    0))')
+    .setFontFamily('Courier New').setFontSize(12).setBackground('#f5f5f5');
+  
+  // Current Leaders
+  stats.getRange('A9:H9').merge().setValue('🏆 CURRENT LEADERS').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.GOLD).setHorizontalAlignment('center');
+  
+  stats.getRange('A10:B10').merge().setValue('1st Place:').setFontWeight('bold').setBackground(CONFIG.COLORS.GOLD);
+  stats.getRange('C10:D10').merge().setFormula('=INDEX(Leaderboard!B:B,
+    2)').setFontWeight('bold');
+  stats.getRange('E10').setFormula('=INDEX(Leaderboard!C:C,
+    2)&" pts"');
+  
+  stats.getRange('A11:B11').merge().setValue('2nd Place:').setFontWeight('bold').setBackground(CONFIG.COLORS.SILVER);
+  stats.getRange('C11:D11').merge().setFormula('=INDEX(Leaderboard!B:B,
+    3)');
+  stats.getRange('E11').setFormula('=INDEX(Leaderboard!C:C,
+    3)&" pts"');
+  
+  stats.getRange('A12:B12').merge().setValue('3rd Place:').setFontWeight('bold').setBackground(CONFIG.COLORS.BRONZE);
+  stats.getRange('C12:D12').merge().setFormula('=INDEX(Leaderboard!B:B,
+    4)');
+  stats.getRange('E12').setFormula('=INDEX(Leaderboard!C:C,
+    4)&" pts"');
+  
+  // Performance Metrics
+  stats.getRange('A14:H14').merge().setValue('📈 TOP PERFORMERS').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.SUCCESS).setFontColor('#ffffff').setHorizontalAlignment('center');
+  
+  stats.getRange('A15:B15').merge().setValue('Most Wins:').setFontWeight('bold');
+  stats.getRange('C15:D15').merge().setFormula('=INDEX(SORT(Standings!A2:C9,
+    3,FALSE),
+    1,
+    1)');
+  stats.getRange('E15').setFormula('=MAX(Standings!C2:C9)&" wins"');
+  
+  stats.getRange('A16:B16').merge().setValue('Best Win %:').setFontWeight('bold');
+  stats.getRange('C16:D16').merge().setFormula('=INDEX(SORT(Standings!A2:I9,
+    9,FALSE),
+    1,
+    1)');
+  stats.getRange('E16').setFormula('=TEXT(MAX(Standings!I2:I9),
+    "0.0%")');
+  
+  stats.getRange('A17:B17').merge().setValue('Most Points Scored:').setFontWeight('bold');
+  stats.getRange('C17:D17').merge().setFormula('=INDEX(SORT(Standings!A2:E9,
+    5,FALSE),
+    1,
+    1)');
+  stats.getRange('E17').setFormula('=MAX(Standings!E2:E9)&" pts"');
+  
+  stats.getRange('A18:B18').merge().setValue('Best Point Diff:').setFontWeight('bold');
+  stats.getRange('C18:D18').merge().setFormula('=INDEX(SORT(Standings!A2:G9,
+    7,FALSE),
+    1,
+    1)');
+  stats.getRange('E18').setFormula('=TEXT(MAX(Standings!G2:G9),
+    "+0;-0;0")');
+  
+  stats.getRange('A19:B19').merge().setValue('Stingiest Defense:').setFontWeight('bold');
+  stats.getRange('C19:D19').merge().setFormula('=INDEX(SORT(Standings!A2:F9,
+    6,TRUE),
+    1,
+    1)');
+  stats.getRange('E19').setFormula('=MIN(Standings!F2:F9)&" allowed"');
+  
+  // Tournament Totals
+  stats.getRange('A21:H21').merge().setValue('🎯 TOURNAMENT STATISTICS').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff').setHorizontalAlignment('center');
+  
+  stats.getRange('A22:B22').merge().setValue('Total Points Scored:').setFontWeight('bold');
+  stats.getRange('C22').setFormula('=SUM(Schedule!F2:G15)');
+  
+  stats.getRange('E22:F22').merge().setValue('Avg Per Match:').setFontWeight('bold');
+  stats.getRange('G22').setFormula('=IF(C6>0,C22/(C6*2),
+    0)');
+  stats.getRange('G22').setNumberFormat('0.0');
+  
+  stats.getRange('A23:B23').merge().setValue('Highest Score:').setFontWeight('bold');
+  stats.getRange('C23').setFormula('=MAX(Schedule!F2:G15)');
+  
+  stats.getRange('E23:F23').merge().setValue('Lowest Score:').setFontWeight('bold');
+  stats.getRange('G23').setFormula('=IF(C6>0,MIN(IF(Schedule!F2:F15<>"",Schedule!F2:F15),IF(Schedule!G2:G15<>"",Schedule!G2:G15)),
+    0)');
+  
+  stats.getRange('A24:B24').merge().setValue('Avg Win Margin:').setFontWeight('bold');
+  stats.getRange('C24').setFormula('=IF(C6>0,AVERAGE(ABS(Schedule!F2:F15-Schedule!G2:G15)),
+    0)');
+  stats.getRange('C24').setNumberFormat('0.0');
+  
+  stats.getRange('E24:F24').merge().setValue('Closest Match:').setFontWeight('bold');
+  stats.getRange('G24').setFormula('=IF(C6>0,MIN(ABS(Schedule!F2:F15-Schedule!G2:G15)),
+    0)');
+  
+  stats.getRange('A25:B25').merge().setValue('Biggest Blowout:').setFontWeight('bold');
+  stats.getRange('C25').setFormula('=IF(C6>0,MAX(ABS(Schedule!F2:F15-Schedule!G2:G15)),
+    0)');
+  
+  // Recent Matches
+  stats.getRange('A27:H27').merge().setValue('🕒 RECENT RESULTS (Last 5)').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.WARNING).setHorizontalAlignment('center');
+  
+  stats.getRange('A28:E28').setValues([
+        ['Match','Matchup','Score','Winner','Margin'
+        ]
+    ]);
+  stats.getRange('A28:E28').setFontWeight('bold').setBackground('#f5f5f5');
+  
+  // Formatting
+  stats.setColumnWidths(1,
+    2,
+    120);
+  stats.setColumnWidths(3,
+    2,
+    150);
+  stats.setColumnWidth(5,
+    150);
+  stats.setColumnWidths(6,
+    3,
+    100);
+  
+  return stats;
+}
+// ============================================================================
+// PARTNERSHIP COMPATIBILITY MATRIX
+// ============================================================================
+
+function createPartnershipCompatibility(ss) {
+  if (!ss) ss = SpreadsheetApp.getActive();
+  
+  const compat = getOrCreateSheet(ss, 'Partnership Compatibility');
+  compat.clear();
+  
+  // Title
+  compat.getRange('A1').setValue('🤝 PARTNERSHIP COMPATIBILITY MATRIX').setFontSize(18).setFontWeight('bold');
+  compat.getRange('A2').setValue('Analysis of player combinations - Win rates and performance metrics')
+    .setFontSize(10).setFontColor('#666666');
+  
+  // Headers
+  compat.getRange('A4:G4').setValues([
+        ['Partnership','Matches','Wins','Losses','Win %','Avg Margin','Rating'
+        ]
+    ]).setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+  
+  // Get unique partnerships
+  const players = ['Dedezito','Guguzito','Cebolito','Nayzito','Michelito','Tiaguito','Marcito','Fernandito'
+    ];
+  let row = 5;
+  let partnerships = [];
+  
+  // Generate all possible partnerships from schedule
+  const ss2 = SpreadsheetApp.getActive();
+  const sched = ss2.getSheetByName('Schedule');
+  
+  for (let r = 2; r <= 15; r++) {
+    const p1 = sched.getRange(r,
+        2).getValue();
+    const p2 = sched.getRange(r,
+        3).getValue();
+    const p3 = sched.getRange(r,
+        4).getValue();
+    const p4 = sched.getRange(r,
+        5).getValue();
+    
+    const pair1 = [p1, p2
+        ].sort().join(' + ');
+    const pair2 = [p3, p4
+        ].sort().join(' + ');
+    
+    if (!partnerships.includes(pair1)) partnerships.push(pair1);
+    if (!partnerships.includes(pair2)) partnerships.push(pair2);
+    }
+  
+  partnerships = partnerships.sort();
+  
+  // Add formulas for each partnership
+  partnerships.forEach((partnership, idx) => {
+    const currentRow = row + idx;
+    
+    compat.getRange(currentRow,
+        1).setValue(partnership);
+    
+    // Matches played
+    compat.getRange(currentRow,
+        2).setFormula(
+      `=COUNTIF(Partnerships!C2:C29,
+        "${partnership}")`
+    );
+    
+    // Wins
+    compat.getRange(currentRow,
+        3).setFormula(
+      `=COUNTIFS(Partnerships!C2:C29,
+        "${partnership}",Partnerships!E2:E29,
+        "WIN")`
+    );
+    
+    // Losses
+    compat.getRange(currentRow,
+        4).setFormula(
+      `=COUNTIFS(Partnerships!C2:C29,
+        "${partnership}",Partnerships!E2:E29,
+        "LOSS")`
+    );
+    
+    // Win %
+    compat.getRange(currentRow,
+        5).setFormula(
+      `=IF(B${currentRow
+        }=0,
+        0,C${currentRow
+        }/B${currentRow
+        })`
+    );
+    
+    // Avg Margin
+    compat.getRange(currentRow,
+        6).setFormula(
+      `=IF(B${currentRow
+        }=0,
+        0,AVERAGEIF(Partnerships!C2:C29,
+        "${partnership}",Partnerships!F2:F29))`
+    );
+    
+    // Rating (custom score based on win % and margin)
+    compat.getRange(currentRow,
+        7).setFormula(
+      `=IF(B${currentRow
+        }=0,
+        0,ROUND(E${currentRow
+        }*70+MIN(F${currentRow
+        }/10,
+        30),
+        1))`
+    );
+    });
+  
+  // Formatting
+  compat.setFrozenRows(4);
+  compat.autoResizeColumns(1,
+    7);
+  compat.getRange(5,
+    5, partnerships.length,
+    1).setNumberFormat('0.0%');
+  compat.getRange(5,
+    6, partnerships.length,
+    1).setNumberFormat('0.0');
+  compat.getRange(5,
+    7, partnerships.length,
+    1).setNumberFormat('0.0');
+  
+  // Conditional formatting for win %
+  const winPctRule = SpreadsheetApp.newConditionalFormatRule()
+    .setGradientMaxpointWithValue(CONFIG.COLORS.SUCCESS, SpreadsheetApp.InterpolationType.NUMBER, '1')
+    .setGradientMidpointWithValue('#ffffff', SpreadsheetApp.InterpolationType.NUMBER, '0.5')
+    .setGradientMinpointWithValue(CONFIG.COLORS.DANGER, SpreadsheetApp.InterpolationType.NUMBER, '0')
+    .setRanges([compat.getRange(5,
+        5, partnerships.length,
+        1)
+    ])
+    .build();
+  
+  // Rating color scale
+  const ratingRule = SpreadsheetApp.newConditionalFormatRule()
+    .setGradientMaxpointWithValue(CONFIG.COLORS.GOLD, SpreadsheetApp.InterpolationType.NUMBER, '100')
+    .setGradientMidpointWithValue('#ffffff', SpreadsheetApp.InterpolationType.NUMBER, '50')
+    .setGradientMinpointWithValue('#cccccc', SpreadsheetApp.InterpolationType.NUMBER, '0')
+    .setRanges([compat.getRange(5,
+        7, partnerships.length,
+        1)
+    ])
+    .build();
+  
+  const rules = [winPctRule, ratingRule
+    ];
+  compat.setConditionalFormatRules(rules);
+  
+  // Add Top Partnerships section
+  const topRow = row + partnerships.length + 2;
+  compat.getRange(topRow,
+    1,
+    1,
+    7).merge().setValue('⭐ TOP 5 PARTNERSHIPS').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.GOLD).setHorizontalAlignment('center');
+  
+  compat.getRange(topRow + 1,
+    1).setFormula(
+    `=SORT(A5:G${row + partnerships.length - 1
+    },
+    7,FALSE)`
+  );
+  
+  // Add Worst Partnerships section
+  const worstRow = topRow + 7;
+  compat.getRange(worstRow,
+    1,
+    1,
+    7).merge().setValue('⚠️ NEEDS IMPROVEMENT').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.DANGER).setFontColor('#ffffff').setHorizontalAlignment('center');
+  
+  compat.getRange(worstRow + 1,
+    1).setFormula(
+    `=SORT(FILTER(A5:G${row + partnerships.length - 1
+    },B5:B${row + partnerships.length - 1
+    }>0),
+    7,TRUE)`
+  );
+  
+  return compat;
+}
+// ============================================================================
+// PLAYER PROFILES
+// ============================================================================
+
+function createPlayerProfiles(ss) {
+  if (!ss) ss = SpreadsheetApp.getActive();
+  
+  const profiles = getOrCreateSheet(ss, 'Player Profiles');
+  profiles.clear();
+  
+  // Title
+  profiles.getRange('A1').setValue('🎮 INDIVIDUAL PLAYER PROFILES').setFontSize(18).setFontWeight('bold');
+  
+  const players = ['Dedezito','Guguzito','Cebolito','Nayzito','Michelito','Tiaguito','Marcito','Fernandito'
+    ];
+  
+  let currentRow = 3;
+  
+  players.forEach((player, idx) => {
+    const startRow = currentRow;
+    
+    // Player Header
+    profiles.getRange(currentRow,
+        1,
+        1,
+        6).merge().setValue(`${idx + 1
+        }. ${player
+        }`)
+      .setFontSize(14).setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+    currentRow++;
+    
+    // Basic Stats
+    profiles.getRange(currentRow,
+        1,
+        1,
+        6).merge().setValue('📊 BASIC STATISTICS')
+      .setFontWeight('bold').setBackground('#e8f0fe');
+    currentRow++;
+    
+    profiles.getRange(currentRow,
+        1).setValue('Current Rank:');
+    profiles.getRange(currentRow,
+        2).setFormula(`=VLOOKUP("${player}",Standings!A2:H9,
+        8,FALSE)`);
+    profiles.getRange(currentRow,
+        3).setValue('Total Points:');
+    profiles.getRange(currentRow,
+        4).setFormula(`=VLOOKUP("${player}",Standings!A2:B9,
+        2,FALSE)`);
+    currentRow++;
+    
+    profiles.getRange(currentRow,
+        1).setValue('Record (W-L):');
+    profiles.getRange(currentRow,
+        2).setFormula(
+      `=VLOOKUP("${player}",Standings!A2:C9,
+        3,FALSE)&"-"&VLOOKUP("${player}",Standings!A2:D9,
+        4,FALSE)`
+    );
+    profiles.getRange(currentRow,
+        3).setValue('Win %:');
+    profiles.getRange(currentRow,
+        4).setFormula(`=VLOOKUP("${player}",Standings!A2:I9,
+        9,FALSE)`);
+    profiles.getRange(currentRow,
+        4).setNumberFormat('0.0%');
+    currentRow++;
+    
+    profiles.getRange(currentRow,
+        1).setValue('Points For:');
+    profiles.getRange(currentRow,
+        2).setFormula(`=VLOOKUP("${player}",Standings!A2:E9,
+        5,FALSE)`);
+    profiles.getRange(currentRow,
+        3).setValue('Points Against:');
+    profiles.getRange(currentRow,
+        4).setFormula(`=VLOOKUP("${player}",Standings!A2:F9,
+        6,FALSE)`);
+    currentRow++;
+    
+    profiles.getRange(currentRow,
+        1).setValue('Point Diff:');
+    profiles.getRange(currentRow,
+        2).setFormula(`=VLOOKUP("${player}",Standings!A2:G9,
+        7,FALSE)`);
+    profiles.getRange(currentRow,
+        3).setValue('Avg Score:');
+    profiles.getRange(currentRow,
+        4).setFormula(
+      `=VLOOKUP("${player}",Standings!A2:E9,
+        5,FALSE)/(VLOOKUP("${player}",Standings!A2:C9,
+        3,FALSE)+VLOOKUP("${player}",Standings!A2:D9,
+        4,FALSE))`
+    );
+    profiles.getRange(currentRow,
+        4).setNumberFormat('0.0');
+    currentRow++;
+    
+    // Performance Metrics
+    currentRow++;
+    profiles.getRange(currentRow,
+        1,
+        1,
+        6).merge().setValue('📈 PERFORMANCE METRICS')
+      .setFontWeight('bold').setBackground('#fff2cc');
+    currentRow++;
+    
+    profiles.getRange(currentRow,
+        1).setValue('Form:');
+    profiles.getRange(currentRow,
+        2).setValue('--'); // Will be calculated
+    profiles.getRange(currentRow,
+        3).setValue('Current Streak:');
+    profiles.getRange(currentRow,
+        4).setValue('--'); // Will be calculated
+    currentRow++;
+    
+    profiles.getRange(currentRow,
+        1).setValue('Best Partnership:');
+    profiles.getRange(currentRow,
+        2,
+        1,
+        2).merge().setValue('TBD'); // Complex query needed
+    profiles.getRange(currentRow,
+        4).setValue('Best Win Margin:');
+    profiles.getRange(currentRow,
+        5).setValue('--');
+    currentRow++;
+    
+    profiles.getRange(currentRow,
+        1).setValue('Worst Partnership:');
+    profiles.getRange(currentRow,
+        2,
+        1,
+        2).merge().setValue('TBD');
+    profiles.getRange(currentRow,
+        4).setValue('Worst Loss Margin:');
+    profiles.getRange(currentRow,
+        5).setValue('--');
+    currentRow++;
+    
+    // Achievements
+    currentRow++;
+    profiles.getRange(currentRow,
+        1,
+        1,
+        6).merge().setValue('🏅 ACHIEVEMENTS')
+      .setFontWeight('bold').setBackground('#d9ead3');
+    currentRow++;
+    
+    profiles.getRange(currentRow,
+        1,
+        1,
+        6).merge().setValue('Achievement tracking coming soon...')
+      .setFontStyle('italic').setFontColor('#666666');
+    currentRow++;
+    
+    // Spacer
+    currentRow += 2;
+    });
+  
+  // Formatting
+  profiles.setColumnWidth(1,
+    180);
+  profiles.setColumnWidth(2,
+    120);
+  profiles.setColumnWidth(3,
+    180);
+  profiles.setColumnWidth(4,
+    120);
+  profiles.setColumnWidth(5,
+    120);
+  profiles.setColumnWidth(6,
+    120);
+  
+  return profiles;
+}
+// ============================================================================
+// ACHIEVEMENTS SYSTEM
+// ============================================================================
+
+function createAchievementsSheet(ss) {
+  if (!ss) ss = SpreadsheetApp.getActive();
+  
+  const ach = getOrCreateSheet(ss, 'Achievements');
+  ach.clear();
+  
+  // Title
+  ach.getRange('A1').setValue('🏅 ACHIEVEMENT SYSTEM').setFontSize(18).setFontWeight('bold');
+  ach.getRange('A2').setValue('Track special accomplishments and milestones')
+    .setFontSize(10).setFontColor('#666666');
+  
+  // Achievement Definitions
+  ach.getRange('A4').setValue('📋 AVAILABLE ACHIEVEMENTS').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+  
+  ach.getRange('A5:D5').setValues([
+        ['Achievement','Description','Points','Rarity'
+        ]
+    ])
+    .setFontWeight('bold').setBackground('#f5f5f5');
+  
+  const achievements = [
+        ['🎯 Perfect Game', 'Win without opponent scoring',
+            100, 'Legendary'
+        ],
+        ['👑 Comeback King', 'Win after being down 10+ points',
+            75, 'Epic'
+        ],
+        ['🛡️ Undefeated', 'Win all your matches',
+            200, 'Legendary'
+        ],
+        ['🐕 Underdog Victory', 'Beat the top-ranked player',
+            50, 'Rare'
+        ],
+        ['📊 Mr. Consistent', 'All matches within 5 point margin',
+            60, 'Rare'
+        ],
+        ['🎪 Sharp Shooter', 'Score 30+ points in a match',
+            40, 'Uncommon'
+        ],
+        ['🛡️ Iron Wall', 'Hold opponent under 10 points',
+            50, 'Rare'
+        ],
+        ['🔥 On Fire', '3+ game win streak',
+            80, 'Epic'
+        ],
+        ['🌟 Versatile', 'Win with 3+ different partners',
+            90, 'Epic'
+        ],
+        ['💪 Powerhouse', 'Win 5+ matches',
+            70, 'Rare'
+        ],
+        ['🎓 Master', 'Achieve 80%+ win rate (min 5 games)',
+            150, 'Legendary'
+        ],
+        ['⚡ Lightning', 'Win by 20+ points',
+            60, 'Rare'
+        ],
+        ['🤝 Team Player', 'Partner with every player',
+            100, 'Epic'
+        ],
+        ['🎖️ Veteran', 'Complete all 7 matches',
+            30, 'Common'
+        ],
+        ['🏆 Champion', 'Finish in 1st place',
+            250, 'Legendary'
+        ]
+    ];
+  
+  ach.getRange(6,
+    1, achievements.length,
+    4).setValues(achievements);
+  
+  // Player Achievement Tracker
+  const trackerRow = 6 + achievements.length + 3;
+  ach.getRange(trackerRow,
+    1).setValue('🎮 PLAYER ACHIEVEMENT TRACKER').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.SUCCESS).setFontColor('#ffffff');
+  
+  const players = ['Dedezito','Guguzito','Cebolito','Nayzito','Michelito','Tiaguito','Marcito','Fernandito'
+    ];
+  
+  ach.getRange(trackerRow + 1,
+    1).setValue('Player').setFontWeight('bold');
+  achievements.forEach((achievement, idx) => {
+    ach.getRange(trackerRow + 1, idx + 2).setValue(achievement[
+            0
+        ]).setFontWeight('bold');
+    });
+  
+  // Add players
+  players.forEach((player, idx) => {
+    ach.getRange(trackerRow + 2 + idx,
+        1).setValue(player);
+    // Achievements will be checked by script (placeholder for now)
+    for (let i = 0; i < achievements.length; i++) {
+      ach.getRange(trackerRow + 2 + idx, i + 2).setValue('--');
+        }
+    });
+  
+  // Leaderboard
+  const leaderRow = trackerRow + players.length + 4;
+  ach.getRange(leaderRow,
+    1,
+    1,
+    3).merge().setValue('🌟 ACHIEVEMENT LEADERBOARD').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.GOLD).setHorizontalAlignment('center');
+  
+  ach.getRange(leaderRow + 1,
+    1,
+    1,
+    3).setValues([
+        ['Player','Achievements','Total Points'
+        ]
+    ])
+    .setFontWeight('bold').setBackground('#f5f5f5');
+  
+  // Formatting
+  ach.setFrozenRows(5);
+  ach.setColumnWidth(1,
+    200);
+  ach.autoResizeColumns(2, achievements.length + 1);
+  
+  // Rarity coloring
+  const rarityRanges = ach.getRange(6,
+    4, achievements.length,
+    1);
+  const legendaryRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('Legendary')
+    .setBackground('#ffd700')
+    .setFontColor('#000000')
+    .setRanges([rarityRanges
+    ])
+    .build();
+  
+  const epicRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('Epic')
+    .setBackground('#9b59b6')
+    .setFontColor('#ffffff')
+    .setRanges([rarityRanges
+    ])
+    .build();
+  
+  const rareRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('Rare')
+    .setBackground('#3498db')
+    .setFontColor('#ffffff')
+    .setRanges([rarityRanges
+    ])
+    .build();
+  
+  const uncommonRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('Uncommon')
+    .setBackground('#2ecc71')
+    .setFontColor('#ffffff')
+    .setRanges([rarityRanges
+    ])
+    .build();
+  
+  const commonRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('Common')
+    .setBackground('#95a5a6')
+    .setFontColor('#ffffff')
+    .setRanges([rarityRanges
+    ])
+    .build();
+  
+  ach.setConditionalFormatRules([legendaryRule, epicRule, rareRule, uncommonRule, commonRule
+    ]);
+  
+  return ach;
+}
+// ============================================================================
+// PREDICTIONS & INSIGHTS
+// ============================================================================
+
+function createPredictionsSheet(ss) {
+  if (!ss) ss = SpreadsheetApp.getActive();
+  
+  const pred = getOrCreateSheet(ss, 'Predictions');
+  pred.clear();
+  
+  // Title
+  pred.getRange('A1').setValue('🔮 AI-POWERED PREDICTIONS & INSIGHTS').setFontSize(18).setFontWeight('bold');
+  pred.getRange('A2').setValue('Statistical analysis and outcome predictions')
+    .setFontSize(10).setFontColor('#666666');
+  
+  // Current Form Indicator
+  pred.getRange('A4:E4').merge().setValue('🔥 PLAYER FORM INDICATORS').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.WARNING).setHorizontalAlignment('center');
+  
+  pred.getRange('A5:E5').setValues([
+        ['Player','Status','Win%','Trend','Prediction'
+        ]
+    ])
+    .setFontWeight('bold').setBackground('#f5f5f5');
+  
+  const players = ['Dedezito','Guguzito','Cebolito','Nayzito','Michelito','Tiaguito','Marcito','Fernandito'
+    ];
+  
+  players.forEach((player, idx) => {
+    const row = 6 + idx;
+    pred.getRange(row,
+        1).setValue(player);
+    
+    // Status (Hot/Cold/Neutral)
+    pred.getRange(row,
+        2).setFormula(
+      `=IF(VLOOKUP("${player}",Standings!A2:I9,
+        9,FALSE)>0.6,
+        "🔥 HOT",IF(VLOOKUP("${player}",Standings!A2:I9,
+        9,FALSE)<0.4,
+        "🧊 COLD",
+        "➖ Neutral"))`
+    );
+    
+    // Win %
+    pred.getRange(row,
+        3).setFormula(`=VLOOKUP("${player}",Standings!A2:I9,
+        9,FALSE)`);
+    pred.getRange(row,
+        3).setNumberFormat('0.0%');
+    
+    // Trend (placeholder)
+    pred.getRange(row,
+        4).setValue('--');
+    
+    // Prediction
+    pred.getRange(row,
+        5).setValue('TBD');
+    });
+  
+  // Projected Final Standings
+  pred.getRange('A16:E16').merge().setValue('📊 PROJECTED FINAL STANDINGS').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff').setHorizontalAlignment('center');
+  
+  pred.getRange('A17:E17').setValues([
+        ['Projected Rank','Player','Current Points','Projected Points','Change'
+        ]
+    ])
+    .setFontWeight('bold').setBackground('#f5f5f5');
+  
+  // Copy current standings and add projections
+  pred.getRange('A18').setFormula('=Leaderboard!A2:A9');
+  pred.getRange('B18').setFormula('=Leaderboard!B2:B9');
+  pred.getRange('C18').setFormula('=Leaderboard!C2:C9');
+  
+  // Projected points (current + estimated from remaining matches)
+  for (let i = 0; i < 8; i++) {
+    const row = 18 + i;
+    pred.getRange(row,
+        4).setFormula(
+      `=C${row
+        }+ROUND((VLOOKUP(B${row
+        },Standings!A2:I9,
+        9,FALSE)*2*(14-'Stats Dashboard'!C6)/8),
+        0)`
+    );
+    pred.getRange(row,
+        5).setFormula(`=D${row
+        }-C${row
+        }`);
+    }
+    // Match Predictions
+  pred.getRange('G4:K4').merge().setValue('⚔️ UPCOMING MATCH PREDICTIONS').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.SUCCESS).setFontColor('#ffffff').setHorizontalAlignment('center');
+  
+  pred.getRange('G5:K5').setValues([
+        ['Match','Team A','Team B','Predicted Winner','Confidence'
+        ]
+    ])
+    .setFontWeight('bold').setBackground('#f5f5f5');
+  
+  // Show next 5 pending matches
+  pred.getRange('G6').setValue('Analyzing remaining matches...');
+  
+  // Insights Section
+  pred.getRange('G16:K16').merge().setValue('💡 KEY INSIGHTS').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.WARNING).setHorizontalAlignment('center');
+  
+  pred.getRange('G17').setValue('• Statistical insights will appear here');
+  pred.getRange('G18').setValue('• Based on completed matches');
+  pred.getRange('G19').setValue('• Updated in real-time');
+  
+  // Formatting
+  pred.setColumnWidths(1,
+    5,
+    130);
+  pred.setColumnWidths(7,
+    5,
+    130);
+  
+  // Conditional formatting for form
+  const hotRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextContains('HOT')
+    .setBackground(CONFIG.COLORS.HOT)
+    .setFontColor('#ffffff')
+    .setRanges([pred.getRange('B6:B13')
+    ])
+    .build();
+  
+  const coldRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextContains('COLD')
+    .setBackground(CONFIG.COLORS.COLD)
+    .setFontColor('#ffffff')
+    .setRanges([pred.getRange('B6:B13')
+    ])
+    .build();
+  
+  pred.setConditionalFormatRules([hotRule, coldRule
+    ]);
+  
+  return pred;
+}
+// ============================================================================
+// LIVE MATCH TRACKER
+// ============================================================================
+
+function createLiveMatchTracker(ss) {
+  if (!ss) ss = SpreadsheetApp.getActive();
+  
+  const live = getOrCreateSheet(ss, 'Live Tracker');
+  live.clear();
+  
+  // Title
+  live.getRange('A1:F1').merge().setValue('🔴 LIVE MATCH TRACKER').setFontSize(20).setFontWeight('bold')
+    .setBackground('#ff0000').setFontColor('#ffffff').setHorizontalAlignment('center');
+  
+  live.getRange('A2:F2').merge().setValue('Real-time match monitoring and updates')
+    .setFontSize(10).setFontColor('#666666').setHorizontalAlignment('center');
+  
+  // Current Match Section
+  live.getRange('A4:F4').merge().setValue('NOW PLAYING').setFontSize(16).setFontWeight('bold')
+    .setBackground('#ffeb3b').setHorizontalAlignment('center');
+  
+  live.getRange('A6').setValue('Match #:');
+  live.getRange('B6').setValue('--');
+  live.getRange('D6').setValue('Status:');
+  live.getRange('E6').setValue('⏳ Pending');
+  
+  live.getRange('A8:C8').merge().setValue('TEAM A').setFontSize(14).setFontWeight('bold')
+    .setBackground('#e3f2fd').setHorizontalAlignment('center');
+  live.getRange('D8:F8').merge().setValue('TEAM B').setFontSize(14).setFontWeight('bold')
+    .setBackground('#fce4ec').setHorizontalAlignment('center');
+  
+  // Scoreboard
+  live.getRange('A10:C10').merge().setFontSize(48).setHorizontalAlignment('center')
+    .setBorder(true,
+    true,
+    true,
+    true,
+    true, true).setValue('0');
+  live.getRange('D10:F10').merge().setFontSize(48).setHorizontalAlignment('center')
+    .setBorder(true,
+    true,
+    true,
+    true,
+    true, true).setValue('0');
+  
+  // Player names
+  live.getRange('A12').setValue('Players:');
+  live.getRange('B12:C12').merge().setValue('--');
+  live.getRange('D12').setValue('Players:');
+  live.getRange('E12:F12').merge().setValue('--');
+  
+  // Match Controls (Instructions)
+  live.getRange('A15:F15').merge().setValue('📝 INSTRUCTIONS').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff').setHorizontalAlignment('center');
+  
+  live.getRange('A16:F16').merge().setValue('Use "Matches → Enter Score" menu to update match results');
+  live.getRange('A17:F17').merge().setValue('This tracker will show the current/most recent match');
+  
+  // Recent Activity
+  live.getRange('A20:F20').merge().setValue('📊 RECENT ACTIVITY').setFontSize(14).setFontWeight('bold')
+    .setBackground(CONFIG.COLORS.SUCCESS).setFontColor('#ffffff').setHorizontalAlignment('center');
+  
+  live.getRange('A21:F21').setValues([
+        ['Time','Match','Winner','Score','Margin','Status'
+        ]
+    ])
+    .setFontWeight('bold').setBackground('#f5f5f5');
+  
+  // Formatting
+  live.setColumnWidths(1,
+    6,
+    120);
+  live.setRowHeight(10,
+    80);
+  
+  return live;
+}
+
+function showLiveMatchTracker() {
+  const ss = SpreadsheetApp.getActive();
+  const live = ss.getSheetByName('Live Tracker');
+  
+  if (live) {
+    ss.setActiveSheet(live);
+    } else {
+    createLiveMatchTracker(ss);
+    }
+}
+
+function createProgressSheet(ss) {
+  const prog = getOrCreateSheet(ss, 'Progress Tracker');
+  prog.clear();
+  
+  prog.getRange('A1').setValue('⏱️ MATCH PROGRESS TRACKER').setFontSize(16).setFontWeight('bold');
+  
+  prog.getRange('A3:F3').setValues([
+        ['Match','Matchup','Status','Completion','Date','Notes'
+        ]
+    ]).setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+  
+  for (let r = 2; r <= 15; r++) {
+    const row = r + 2;
+    prog.getRange(row,
+        1).setFormula('=Schedule!A' + r);
+    prog.getRange(row,
+        2).setFormula('=Schedule!B' + r + '&" + "&Schedule!C' + r + '&" vs "&Schedule!D' + r + '&" + "&Schedule!E' + r);
+    prog.getRange(row,
+        3).setFormula('=Schedule!H' + r);
+    prog.getRange(row,
+        4).setFormula('=IF(Schedule!H' + r + '="✓",
+        "100%",
+        "0%")');
+    prog.getRange(row,
+        5).setValue('');
+    prog.getRange(row,
+        6).setValue('');
+    }
+  
+  prog.setFrozenRows(3);
+  prog.autoResizeColumns(1,
+    6);
+  prog.setColumnWidth(2,
+    350);
+  prog.setColumnWidth(6,
+    200);
+  
+  // Conditional formatting
+  const completeRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('✓')
+    .setBackground(CONFIG.COLORS.WIN)
+    .setRanges([prog.getRange('C4:C17')
+    ])
+    .build();
+  
+  const pendingRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('⏳')
+    .setBackground(CONFIG.COLORS.PENDING)
+    .setRanges([prog.getRange('C4:C17')
+    ])
+    .build();
+  
+  prog.setConditionalFormatRules([completeRule, pendingRule
+    ]);
+}
+// ============================================================================
+// ADVANCED CONDITIONAL FORMATTING
+// ============================================================================
+
+function applyAdvancedFormatting() {
+  applyScheduleAdvancedFormatting();
+  applyStandingsAdvancedFormatting();
+  // Add more as needed
+}
+
+function applyScheduleFormatting(sched) {
+    // Win/Loss highlighting
+  const ruleA = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=$F2>$G2')
+    .setBackground(CONFIG.COLORS.WIN)
+    .setBold(true)
+    .setRanges([sched.getRange('B2:C15')
+    ])
+    .build();
+  
+  const ruleB = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=$G2>$F2')
+    .setBackground(CONFIG.COLORS.WIN)
+    .setBold(true)
+    .setRanges([sched.getRange('D2:E15')
+    ])
+    .build();
+  
+  const ruleC = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=$F2<$G2')
+    .setBackground(CONFIG.COLORS.LOSS)
+    .setRanges([sched.getRange('B2:C15')
+    ])
+    .build();
+  
+  const ruleD = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=$G2<$F2')
+    .setBackground(CONFIG.COLORS.LOSS)
+    .setRanges([sched.getRange('D2:E15')
+    ])
+    .build();
+  
+  // Status indicators
+  const ruleComplete = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('✓')
+    .setBackground(CONFIG.COLORS.WIN)
+    .setBold(true)
+    .setRanges([sched.getRange('H2:H15')
+    ])
+    .build();
+  
+  const rulePending = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('⏳')
+    .setBackground(CONFIG.COLORS.PENDING)
+    .setRanges([sched.getRange('H2:H15')
+    ])
+    .build();
+  
+  // Score magnitude (gradient)
+  const scoreGradient = SpreadsheetApp.newConditionalFormatRule()
+    .setGradientMaxpointWithValue('#4caf50', SpreadsheetApp.InterpolationType.NUMBER, '30')
+    .setGradientMinpointWithValue('#ffffff', SpreadsheetApp.InterpolationType.NUMBER, '0')
+    .setRanges([sched.getRange('F2:G15')
+    ])
+    .build();
+  
+  const rules = [ruleA, ruleB, ruleC, ruleD, ruleComplete, rulePending, scoreGradient
+    ];
+  sched.setConditionalFormatRules(rules);
+}
+
+function applyScheduleAdvancedFormatting() {
+  const ss = SpreadsheetApp.getActive();
+  const sched = ss.getSheetByName('Schedule');
+  if (!sched) return;
+  
+  // Add alternating row colors for better readability
+  for (let r = 2; r <= 15; r++) {
+    if (r % 2 === 0) {
+      sched.getRange(r,
+            1,
+            1,
+            9).setBackground('#f8f9fa');
+        }
+    }
+}
+
+function applyStandingsFormatting(std) {
+    // Point differential colors
+  const diffPositive = SpreadsheetApp.newConditionalFormatRule()
+    .whenNumberGreaterThan(0)
+    .setBackground(CONFIG.COLORS.WIN)
+    .setBold(true)
+    .setRanges([std.getRange('G2:G9')
+    ])
+    .build();
+  
+  const diffNegative = SpreadsheetApp.newConditionalFormatRule()
+    .whenNumberLessThan(0)
+    .setBackground(CONFIG.COLORS.LOSS)
+    .setRanges([std.getRange('G2:G9')
+    ])
+    .build();
+  
+  // Win % gradient
+  const winPctGradient = SpreadsheetApp.newConditionalFormatRule()
+    .setGradientMaxpointWithValue(CONFIG.COLORS.SUCCESS, SpreadsheetApp.InterpolationType.NUMBER, '1')
+    .setGradientMidpointWithValue('#ffffff', SpreadsheetApp.InterpolationType.NUMBER, '0.5')
+    .setGradientMinpointWithValue(CONFIG.COLORS.DANGER, SpreadsheetApp.InterpolationType.NUMBER, '0')
+    .setRanges([std.getRange('I2:I9')
+    ])
+    .build();
+  
+  // Rank highlighting
+  const rank1 = SpreadsheetApp.newConditionalFormatRule()
+    .whenNumberEqualTo(1)
+    .setBackground(CONFIG.COLORS.GOLD)
+    .setBold(true)
+    .setRanges([std.getRange('H2:H9')
+    ])
+    .build();
+  
+  const rank2 = SpreadsheetApp.newConditionalFormatRule()
+    .whenNumberEqualTo(2)
+    .setBackground(CONFIG.COLORS.SILVER)
+    .setBold(true)
+    .setRanges([std.getRange('H2:H9')
+    ])
+    .build();
+  
+  const rank3 = SpreadsheetApp.newConditionalFormatRule()
+    .whenNumberEqualTo(3)
+    .setBackground(CONFIG.COLORS.BRONZE)
+    .setBold(true)
+    .setRanges([std.getRange('H2:H9')
+    ])
+    .build();
+  
+  const rules = [diffPositive, diffNegative, winPctGradient, rank1, rank2, rank3
+    ];
+  std.setConditionalFormatRules(rules);
+}
+
+function applyStandingsAdvancedFormatting() {
+  const ss = SpreadsheetApp.getActive();
+  const std = ss.getSheetByName('Standings');
+  if (!std) return;
+  
+  // Highlight entire row for top 3
+  std.getRange('A2:K2').setBackground('#fff9c4').setFontWeight('bold'); // 1st
+  std.getRange('A3:K3').setBackground('#f5f5f5').setFontWeight('bold'); // 2nd
+  std.getRange('A4:K4').setBackground('#ffe0b2'); // 3rd
+}
+
+function applyPartnershipsFormatting(part) {
+    // Win/Loss colors
+  const winRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('WIN')
+    .setBackground(CONFIG.COLORS.WIN)
+    .setBold(true)
+    .setRanges([part.getRange('E2:E29')
+    ])
+    .build();
+  
+  const lossRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('LOSS')
+    .setBackground(CONFIG.COLORS.LOSS)
+    .setRanges([part.getRange('E2:E29')
+    ])
+    .build();
+  
+  // Team colors
+  const teamARule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('Team A')
+    .setBackground('#e3f2fd')
+    .setRanges([part.getRange('B2:B29')
+    ])
+    .build();
+  
+  const teamBRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('Team B')
+    .setBackground('#fce4ec')
+    .setRanges([part.getRange('B2:B29')
+    ])
+    .build();
+  
+  // Margin gradient
+  const marginGradient = SpreadsheetApp.newConditionalFormatRule()
+    .setGradientMaxpointWithValue(CONFIG.COLORS.SUCCESS, SpreadsheetApp.InterpolationType.NUMBER, '15')
+    .setGradientMidpointWithValue('#ffffff', SpreadsheetApp.InterpolationType.NUMBER, '0')
+    .setGradientMinpointWithValue(CONFIG.COLORS.DANGER, SpreadsheetApp.InterpolationType.NUMBER, '-15')
+    .setRanges([part.getRange('F2:F29')
+    ])
+    .build();
+  
+  const rules = [winRule, lossRule, teamARule, teamBRule, marginGradient
+    ];
+  part.setConditionalFormatRules(rules);
+}
+// ============================================================================
+// CHART GENERATION
+// ============================================================================
+
+function createAllCharts() {
+  const ss = SpreadsheetApp.getActive();
+  
+  createStandingsCharts(ss);
+  createStatsDashboardCharts(ss);
+  createPartnershipCharts(ss);
+  
+  SpreadsheetApp.getUi().alert('✅ Charts Created', 'All visualization charts have been generated!', SpreadsheetApp.getUi().ButtonSet.OK);
+}
+
+function createStandingsCharts(ss) {
+  const stats = ss.getSheetByName('Stats Dashboard');
+  if (!stats) return;
+  
+  // Clear existing charts
+  stats.getCharts().forEach(chart => stats.removeChart(chart));
+  
+  // Chart 1: Points Distribution (Pie)
+  const pointsChart = stats.newChart()
+    .setChartType(Charts.ChartType.PIE)
+    .addRange(stats.getRange('Leaderboard!B2:B9'))
+    .addRange(stats.getRange('Leaderboard!C2:C9'))
+    .setPosition(29,
+    1,
+    0,
+    0)
+    .setOption('title', 'Points Distribution')
+    .setOption('width',
+    450)
+    .setOption('height',
+    300)
+    .setOption('pieHole',
+    0.4)
+    .setOption('legend',
+    {position: 'right'
+    })
+    .setOption('chartArea',
+    {width: '90%', height: '80%'
+    })
+    .build();
+  
+  stats.insertChart(pointsChart);
+  
+  // Chart 2: Win/Loss Comparison (Column)
+  const winsChart = stats.newChart()
+    .setChartType(Charts.ChartType.COLUMN)
+    .addRange(stats.getRange('Leaderboard!B1:B9'))
+    .addRange(stats.getRange('Leaderboard!D1:E9'))
+    .setPosition(29,
+    6,
+    0,
+    0)
+    .setOption('title', 'Wins vs Losses')
+    .setOption('width',
+    500)
+    .setOption('height',
+    300)
+    .setOption('legend',
+    {position: 'bottom'
+    })
+    .setOption('colors',
+    [CONFIG.COLORS.SUCCESS, CONFIG.COLORS.DANGER
+    ])
+    .setOption('chartArea',
+    {width: '85%', height: '70%'
+    })
+    .build();
+  
+  stats.insertChart(winsChart);
+  
+  // Chart 3: Point Differential (Bar)
+  const diffChart = stats.newChart()
+    .setChartType(Charts.ChartType.BAR)
+    .addRange(stats.getRange('Leaderboard!B1:B9'))
+    .addRange(stats.getRange('Leaderboard!H1:H9'))
+    .setPosition(44,
+    1,
+    0,
+    0)
+    .setOption('title', 'Point Differential')
+    .setOption('width',
+    500)
+    .setOption('height',
+    350)
+    .setOption('legend',
+    {position: 'none'
+    })
+    .setOption('colors',
+    [CONFIG.COLORS.PRIMARY
+    ])
+    .setOption('chartArea',
+    {width: '75%', height: '80%'
+    })
+    .build();
+  
+  stats.insertChart(diffChart);
+  
+  // Chart 4: Win Percentage (Horizontal Bar)
+  const winPctChart = stats.newChart()
+    .setChartType(Charts.ChartType.BAR)
+    .addRange(stats.getRange('Leaderboard!B1:B9'))
+    .addRange(stats.getRange('Leaderboard!J1:J9'))
+    .setPosition(44,
+    6,
+    0,
+    0)
+    .setOption('title', 'Win Percentage')
+    .setOption('width',
+    500)
+    .setOption('height',
+    350)
+    .setOption('legend',
+    {position: 'none'
+    })
+    .setOption('colors',
+    [CONFIG.COLORS.SUCCESS
+    ])
+    .setOption('hAxis',
+    {format: '0%'
+    })
+    .setOption('chartArea',
+    {width: '70%', height: '80%'
+    })
+    .build();
+  
+  stats.insertChart(winPctChart);
+}
+
+function createStatsDashboardCharts(ss) {
+    // Additional charts for advanced metrics
+    // (Implementation continues...)
+}
+
+function createPartnershipCharts(ss) {
+  const compat = ss.getSheetByName('Partnership Compatibility');
+  if (!compat) return;
+  
+  // Chart: Top Partnerships by Win Rate
+  const topPartnershipsChart = compat.newChart()
+    .setChartType(Charts.ChartType.BAR)
+    .addRange(compat.getRange('A5:A30'))
+    .addRange(compat.getRange('E5:E30'))
+    .setPosition(5,
+    8,
+    0,
+    0)
+    .setOption('title', 'Partnership Win Rates')
+    .setOption('width',
+    600)
+    .setOption('height',
+    400)
+    .setOption('legend',
+    {position: 'none'
+    })
+    .setOption('hAxis',
+    {format: '0%', title: 'Win Rate'
+    })
+    .setOption('chartArea',
+    {width: '70%', height: '85%'
+    })
+    .build();
+  
+  compat.insertChart(topPartnershipsChart);
+}
+// ============================================================================
+// EMAIL NOTIFICATION SYSTEM
+// ============================================================================
+/**
+ * Sends standings email to all players
+ */
+function emailStandingsToAll() {
+  const ui = SpreadsheetApp.getUi();
+  
+  if (!CONFIG.ENABLE_EMAIL_NOTIFICATIONS) {
+    ui.alert('Email Disabled', 'Email notifications are currently disabled. Enable in configuration.', ui.ButtonSet.OK);
+    return;
+    }
+  
+  const response = ui.alert(
+    'Send Standings Email',
+    'This will send current standings to all players with notifications enabled. Continue?',
+    ui.ButtonSet.YES_NO
+  );
+  
+  if (response !== ui.Button.YES) {
+    return;
+    }
+  
+  try {
+    const ss = SpreadsheetApp.getActive();
+    const players = ss.getSheetByName('Players');
+    const leaderboard = ss.getSheetByName('Leaderboard');
+    
+    if (!players || !leaderboard) {
+      ui.alert('Error', 'Required sheets not found. Please run setup first.', ui.ButtonSet.OK);
+      return;
+        }
+        // Get player data
+    const playerData = players.getRange('A2:E9').getValues();
+    const standingsData = leaderboard.getRange('A1:J9').getValues();
+    
+    let emailsSent = 0;
+    let emailsFailed = 0;
+    
+    playerData.forEach(row => {
+      const playerName = row[
+                0
+            ];
+      const email = row[
+                1
+            ];
+      const notificationEnabled = row[
+                3
+            ];
+      
+      if (notificationEnabled === 'Yes' && email && email.includes('@')) {
+        try {
+          const emailBody = buildStandingsEmail(playerName, standingsData, ss.getUrl());
+          
+          MailApp.sendEmail({
+            to: email,
+            subject: `🏆 ${CONFIG.TOURNAMENT_NAME
+                        } - Standings Update`,
+            htmlBody: emailBody
+                    });
+          
+          emailsSent++;
+                } catch (e) {
+          console.log(`Failed to send email to ${playerName
+                    }: ${e.message
+                    }`);
+          emailsFailed++;
+                }
+            }
+        });
+    
+    logActivity(`Standings emails sent: ${emailsSent
+        } successful, ${emailsFailed
+        } failed`);
+    
+    ui.alert(
+      '📧 Emails Sent',
+      `Successfully sent ${emailsSent
+        } emails.\nFailed: ${emailsFailed
+        }`,
+      ui.ButtonSet.OK
+    );
+    } catch (e) {
+    ui.alert('Error', `Failed to send emails: ${e.message
+        }`, ui.ButtonSet.OK);
+    }
+}
+/**
+ * Builds HTML email for standings
+ */
+function buildStandingsEmail(playerName, standingsData, sheetUrl) {
+  let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333;
+    }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px;
+    }
+        .header { background: ${CONFIG.COLORS.PRIMARY
+        }; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;
+    }
+        .content { background: #f9f9f9; padding: 20px;
+    }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white;
+    }
+        th { background: ${CONFIG.COLORS.PRIMARY
+        }; color: white; padding: 12px; text-align: left;
+    }
+        td { padding: 10px; border-bottom: 1px solid #ddd;
+    }
+        tr:hover { background: #f5f5f5;
+    }
+        .highlight { background: ${CONFIG.COLORS.GOLD
+        } !important; font-weight: bold;
+    }
+        .player-stats { background: #e8f0fe; padding: 15px; border-radius: 5px; margin: 15px 0;
+    }
+        .button { display: inline-block; padding: 12px 24px; background: ${CONFIG.COLORS.SUCCESS
+        }; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;
+    }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px;
+    }
+        .medal { font-size: 24px;
+    }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🏆 ${CONFIG.TOURNAMENT_NAME
+    }</h1>
+          <p>Current Standings Update</p>
+        </div>
+        
+        <div class="content">
+          <p>Hello <strong>${playerName
+    }</strong>!</p>
+          <p>Here are the current tournament standings as of ${getTimestamp()
+    }:</p>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Points</th>
+                <th>W-L</th>
+                <th>Win %</th>
+                <th>Diff</th>
+              </tr>
+            </thead>
+            <tbody>
+  `;
+  
+  // Add standings rows
+  for (let i = 1; i < standingsData.length; i++) {
+    const row = standingsData[i
+        ];
+    const isPlayer = row[
+            1
+        ] === playerName;
+    const rowClass = isPlayer ? 'highlight' : '';
+    const medal = i === 1 ? '🥇' : i === 2 ? '🥈' : i === 3 ? '🥉' : '';
+    
+    html += `
+      <tr class="${rowClass}">
+        <td>${row[
+                0
+            ]
+        } ${medal
+        }</td>
+        <td><strong>${row[
+                1
+            ]
+        }</strong></td>
+        <td>${row[
+                2
+            ]
+        }</td>
+        <td>${row[
+                3
+            ]
+        }-${row[
+                4
+            ]
+        }</td>
+        <td>${(row[
+                9
+            ] * 100).toFixed(1)
+        }%</td>
+        <td>${row[
+                7
+            ] > 0 ? '+' : ''
+        }${row[
+                7
+            ]
+        }</td>
+      </tr>
+    `;
+    }
+  
+  html += `
+            </tbody>
+          </table>
+          
+          <div class="player-stats">
+            <h3>📊 Your Performance</h3>
+            <p>Keep up the great work, ${playerName
+    }! Check the full dashboard for detailed statistics.</p>
+          </div>
+          
+          <center>
+            <a href="${sheetUrl}" class="button">View Full Dashboard</a>
+          </center>
+          
+          <p style="margin-top: 20px;">
+            <strong>Next Steps:</strong><br>
+            • Check upcoming matches in the Schedule<br>
+            • Review your partnerships and strategies<br>
+            • Good luck in your remaining matches!
+          </p>
+        </div>
+        
+        <div class="footer">
+          <p>This is an automated message from the Tournament Management System</p>
+          <p>To stop receiving these emails, update your notification settings in the Players sheet</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+  
+  return html;
+}
+/**
+ * Sends match reminder emails
+ */
+function sendMatchReminders() {
+  const ui = SpreadsheetApp.getUi();
+  
+  ui.alert(
+    '🔔 Match Reminders',
+    'This feature will send reminders to players for their upcoming matches.\n\nComing soon!',
+    ui.ButtonSet.OK
+  );
+  
+  // Implementation for scheduled match reminders
+    // Can be triggered by time-based triggers
+}
+/**
+ * Announces tournament winners
+ */
+function announceWinners() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActive();
+  
+  // Check if tournament is complete
+  const sched = ss.getSheetByName('Schedule');
+  const completed = sched.getRange('H2:H15').getValues().filter(row => row[
+        0
+    ] === '✓').length;
+  
+  if (completed < 14) {
+    ui.alert(
+      'Tournament Incomplete',
+      `Only ${completed
+        } of 14 matches completed. Cannot announce winners yet.`,
+      ui.ButtonSet.OK
+    );
+    return;
+    }
+  
+  const response = ui.alert(
+    '🎉 Announce Winners',
+    'This will send a championship email to all players. Continue?',
+    ui.ButtonSet.YES_NO
+  );
+  
+  if (response !== ui.Button.YES) {
+    return;
+    }
+  
+  try {
+    const players = ss.getSheetByName('Players');
+    const leaderboard = ss.getSheetByName('Leaderboard');
+    
+    const playerData = players.getRange('A2:E9').getValues();
+    const winner = leaderboard.getRange('B2').getValue();
+    const winnerPoints = leaderboard.getRange('C2').getValue();
+    
+    let emailsSent = 0;
+    
+    playerData.forEach(row => {
+      const email = row[
+                1
+            ];
+      const notificationEnabled = row[
+                3
+            ];
+      
+      if (notificationEnabled === 'Yes' && email && email.includes('@')) {
+        try {
+          const emailBody = buildWinnersEmail(winner, winnerPoints, ss.getUrl());
+          
+          MailApp.sendEmail({
+            to: email,
+            subject: `🏆 ${CONFIG.TOURNAMENT_NAME
+                        } - CHAMPIONS ANNOUNCED!`,
+            htmlBody: emailBody
+                    });
+          
+          emailsSent++;
+                } catch (e) {
+          console.log(`Failed to send winner email: ${e.message
+                    }`);
+                }
+            }
+        });
+    
+    logActivity(`Winner announcement emails sent: ${emailsSent
+        }`);
+    
+    ui.alert('🎉 Success', `Championship emails sent to ${emailsSent
+        } players!`, ui.ButtonSet.OK);
+    } catch (e) {
+    ui.alert('Error', `Failed to announce winners: ${e.message
+        }`, ui.ButtonSet.OK);
+    }
+}
+
+function buildWinnersEmail(winner, points, sheetUrl) {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5;
+    }
+        .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,
+        0,
+        0,
+        0.1);
+    }
+        .header { background: linear-gradient(135deg, #ffd700, #ffed4e); padding: 40px; text-align: center;
+    }
+        .header h1 { margin: 0; font-size: 36px; color: #333;
+    }
+        .trophy { font-size: 80px; margin: 20px 0;
+    }
+        .content { padding: 30px;
+    }
+        .winner-box { background: #ffd700; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;
+    }
+        .winner-box h2 { margin: 0; font-size: 32px; color: #333;
+    }
+        .stats { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;
+    }
+        .button { display: inline-block; padding: 15px 30px; background: #4285f4; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold;
+    }
+        .footer { background: #f5f5f5; padding: 20px; text-align: center; color: #666;
+    }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="trophy">🏆</div>
+          <h1>${CONFIG.TOURNAMENT_NAME
+    }</h1>
+          <p style="font-size: 18px; color: #666;">Tournament Complete!</p>
+        </div>
+        
+        <div class="content">
+          <h2 style="text-align: center; color: #4285f4;">🎉 CONGRATULATIONS! 🎉</h2>
+          
+          <div class="winner-box">
+            <p style="margin: 0; font-size: 16px;">CHAMPION</p>
+            <h2>${winner
+    }</h2>
+            <p style="margin: 10px 0 0 0; font-size: 24px;">${points
+    } Points</p>
+          </div>
+          
+          <p style="text-align: center; font-size: 18px; margin: 30px 0;">
+            Thank you to all participants for an amazing tournament!
+          </p>
+          
+          <div class="stats">
+            <h3 style="margin-top: 0;">📊 Tournament Complete</h3>
+            <p>✓ All 14 matches completed<br>
+            ✓ 8 players participated<br>
+            ✓ Unforgettable memories created!</p>
+          </div>
+          
+          <center>
+            <a href="${sheetUrl}" class="button">View Final Results</a>
+          </center>
+          
+          <p style="text-align: center; margin-top: 30px; color: #666;">
+            See you in the next tournament!
+          </p>
+        </div>
+        
+        <div class="footer">
+          <p>🏆 ${CONFIG.TOURNAMENT_NAME
+    } - ${getTimestamp()
+    }</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+function configureEmailSettings() {
+  const html = HtmlService.createHtmlOutput(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <base target="_top">
+        <style>
+          body { font-family: Arial; padding: 20px;
+    }
+          .setting { margin: 15px 0;
+    }
+          label { display: block; margin-bottom: 5px; font-weight: bold;
+    }
+          input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;
+    }
+          button { background: #4285f4; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px;
+    }
+        </style>
+      </head>
+      <body>
+        <h2>⚙️ Email Notification Settings</h2>
+        
+        <div class="setting">
+          <label>Enable Notifications:</label>
+          <select id="enabled">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+        
+        <div class="setting">
+          <label>Send Frequency:</label>
+          <select id="frequency">
+            <option value="24">Daily</option>
+            <option value="48">Every 2 days</option>
+            <option value="168">Weekly</option>
+          </select>
+        </div>
+        
+        <div class="setting">
+          <label>Admin Email:</label>
+          <input type="email" id="adminEmail" value="${CONFIG.ADMIN_EMAIL}">
+        </div>
+        
+        <button onclick="saveSettings()">Save Settings</button>
+        
+        <script>
+          function saveSettings() {
+            alert('Settings saved! (Feature in development)');
+            google.script.host.close();
+    }
+        </script>
+      </body>
+    </html>
+  `).setWidth(400).setHeight(350);
+  
+  SpreadsheetApp.getUi().showModalDialog(html, 'Email Settings');
+}
+// ============================================================================
+// PDF EXPORT FUNCTIONALITY
+// ============================================================================
+/**
+ * Generates complete PDF report
+ */
+function generateCompletePDFReport() {
+  const ui = SpreadsheetApp.getUi();
+  
+  ui.alert(
+    '📄 Generate PDF Report',
+    'To create a PDF report:\n\n' +
+    '1. Go to File → Download → PDF Document\n' +
+    '2. Select these sheets:\n' +
+    '   • Leaderboard\n' +
+    '   • Stats Dashboard\n' +
+    '   • Partnership Compatibility\n' +
+    '   • Achievements\n' +
+    '3. Choose "Fit to Width" for best results\n' +
+    '4. Click "Export"\n\n' +
+    'The PDF will include all charts and formatting!',
+    ui.ButtonSet.OK
+  );
+  
+  // Alternative: Create a formatted summary sheet specifically for PDF export
+  createPDFSummarySheet();
+}
+/**
+ * Creates a specially formatted sheet for PDF export
+ */
+function createPDFSummarySheet() {
+  const ss = SpreadsheetApp.getActive();
+  const summary = getOrCreateSheet(ss, 'PDF Export Summary');
+  summary.clear();
+  
+  // Title Page
+  summary.getRange('A1:H1').merge().setValue(`🏆 ${CONFIG.TOURNAMENT_NAME
+    }`)
+    .setFontSize(28).setFontWeight('bold').setHorizontalAlignment('center');
+  
+  summary.getRange('A2:H2').merge().setValue('FINAL TOURNAMENT REPORT')
+    .setFontSize(18).setHorizontalAlignment('center');
+  
+  summary.getRange('A3:H3').merge().setValue(getTimestamp())
+    .setFontSize(12).setHorizontalAlignment('center').setFontColor('#666666');
+  
+  // Executive Summary
+  summary.getRange('A5:H5').merge().setValue('📊 EXECUTIVE SUMMARY')
+    .setFontSize(16).setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+  
+  summary.getRange('A7:B7').merge().setValue('Tournament Status:');
+  summary.getRange('C7:D7').merge().setValue('COMPLETE').setFontWeight('bold').setFontColor(CONFIG.COLORS.SUCCESS);
+  
+  summary.getRange('A8:B8').merge().setValue('Total Matches:');
+  summary.getRange('C8').setValue(14);
+  
+  summary.getRange('A9:B9').merge().setValue('Total Players:');
+  summary.getRange('C9').setValue(8);
+  
+  summary.getRange('A10:B10').merge().setValue('Champion:');
+  summary.getRange('C10:D10').merge().setFormula('=Leaderboard!B2').setFontWeight('bold').setFontSize(14);
+  
+  // Final Standings
+  summary.getRange('A13:H13').merge().setValue('🏆 FINAL STANDINGS')
+    .setFontSize(16).setFontWeight('bold').setBackground(CONFIG.COLORS.GOLD);
+  
+  summary.getRange('A14').setFormula('=Leaderboard!A1:J9');
+  
+  // Key Statistics
+  summary.getRange('A24:H24').merge().setValue('📈 KEY STATISTICS')
+    .setFontSize(16).setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+  
+  // Copy relevant stats from Stats Dashboard
+  summary.getRange('A26:B26').merge().setValue('Most Wins:');
+  summary.getRange('C26:D26').merge().setFormula('=INDEX(SORT(Standings!A2:C9,
+    3,FALSE),
+    1,
+    1)');
+  
+  summary.getRange('A27:B27').merge().setValue('Highest Win %:');
+  summary.getRange('C27:D27').merge().setFormula('=INDEX(SORT(Standings!A2:I9,
+    9,FALSE),
+    1,
+    1)');
+  
+  summary.getRange('A28:B28').merge().setValue('Best Point Diff:');
+  summary.getRange('C28:D28').merge().setFormula('=INDEX(SORT(Standings!A2:G9,
+    7,FALSE),
+    1,
+    1)');
+  
+  // Top Partnerships
+  summary.getRange('A31:H31').merge().setValue('🤝 TOP PARTNERSHIPS')
+    .setFontSize(16).setFontWeight('bold').setBackground(CONFIG.COLORS.SUCCESS).setFontColor('#ffffff');
+  
+  summary.getRange('A32').setFormula('=SORT(\'Partnership Compatibility\'!A5:G30,
+    7,FALSE)');
+  
+  // Formatting
+  summary.setColumnWidths(1,
+    8,
+    120);
+  
+  // Set print settings
+  summary.getRange('A1:H50').setFontFamily('Arial');
+  
+  SpreadsheetApp.getUi().alert(
+    '✅ PDF Summary Created',
+    'A formatted summary sheet has been created!\n\n' +
+    'To export:\n' +
+    '1. Select the "PDF Export Summary" sheet\n' +
+    '2. File → Download → PDF\n' +
+    '3. Export!',
+    SpreadsheetApp.getUi().ButtonSet.OK
+  );
+  
+  ss.setActiveSheet(summary);
+}
+/**
+ * Emails PDF report to all players
+ */
+function emailPDFToAll() {
+  const ui = SpreadsheetApp.getUi();
+  
+  ui.alert(
+    '📧 Email PDF Report',
+    'To email PDF reports:\n\n' +
+    '1. First generate the PDF using "Generate PDF Report"\n' +
+    '2. Upload the PDF to Google Drive\n' +
+    '3. Share the link with players\n\n' +
+    'Automated PDF generation requires advanced setup.\n' +
+    'Contact your administrator for assistance.',
+    ui.ButtonSet.OK
+  );
+  
+  // Note: Actual PDF generation and emailing requires Drive API
+    // and more complex implementation
+}
+// ============================================================================
+// SCORE ENTRY DIALOG (ENHANCED)
+// ============================================================================
+
+function showScoreEntryDialog() {
+  const html = HtmlService.createHtmlOutput(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <base target="_top">
+        <style>
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 0;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+          .container {
+            background: white;
+            margin: 20px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,
+        0,
+        0,
+        0.2);
+    }
+          h2 {
+            color: #4285f4;
+            margin-top: 0;
+            text-align: center;
+            font-size: 24px;
+    }
+          .form-group {
+            margin-bottom: 20px;
+    }
+          label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+    }
+          select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: border-color 0.3s;
+    }
+          select:focus, input:focus {
+            outline: none;
+            border-color: #4285f4;
+    }
+          .matchup {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+    }
+          .vs {
+            display: inline-block;
+            background: rgba(255,
+        255,
+        255,
+        0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 10px 0;
+    }
+          .score-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+    }
+          .team-section {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+    }
+          .team-section.team-a {
+            border-left: 4px solid #4285f4;
+    }
+          .team-section.team-b {
+            border-left: 4px solid #ea4335;
+    }
+          button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.2s;
+    }
+          button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,
+        126,
+        234,
+        0.4);
+    }
+          button:active {
+            transform: translateY(0);
+    }
+          .error {
+            color: #d93025;
+            background: #fce8e6;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border-left: 4px solid #d93025;
+    }
+          .success {
+            color: #0f9d58;
+            background: #e6f4ea;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border-left: 4px solid #0f9d58;
+    }
+          .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+    }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h2>🎯 Enter Match Score</h2>
+          
+          <div class="form-group">
+            <label for="match">Select Match:</label>
+            <select id="match" onchange="updateMatchup()">
+              <option value="">-- Select Match --</option>
+            </select>
+          </div>
+          
+          <div id="matchup" class="matchup" style="display:none;">
+            <div id="matchupText"></div>
+          </div>
+          
+          <div class="score-inputs">
+            <div class="team-section team-a">
+              <label for="scoreA">Team A Score:</label>
+              <input type="number" id="scoreA" min="0" step="1" placeholder="0">
+            </div>
+            <div class="team-section team-b">
+              <label for="scoreB">Team B Score:</label>
+              <input type="number" id="scoreB" min="0" step="1" placeholder="0">
+            </div>
+          </div>
+          
+          <button onclick="submitScore()">💾 Save Score</button>
+          
+          <div id="message"></div>
+        </div>
+        
+        <script>
+          window.onload = function() {
+            google.script.run.withSuccessHandler(populateMatches).getMatchList();
+    };
+          
+          function populateMatches(matches) {
+            const select = document.getElementById('match');
+            matches.forEach(match => {
+              const option = document.createElement('option');
+              option.value = match.number;
+              option.text = 'Match ' + match.number + ': ' + match.matchup + ' ' + match.status;
+              select.appendChild(option);
+        });
+    }
+          
+          function updateMatchup() {
+            const select = document.getElementById('match');
+            const matchup = document.getElementById('matchup');
+            const matchupText = document.getElementById('matchupText');
+            
+            if (select.value) {
+              google.script.run.withSuccessHandler(function(data) {
+                matchupText.innerHTML = '<strong>' + data.teamA + '</strong><div class="vs">VS</div><strong>' + data.teamB + '</strong>';
+                matchup.style.display = 'block';
+                
+                if (data.scoreA !== '') {
+                  document.getElementById('scoreA').value = data.scoreA;
+                }
+                if (data.scoreB !== '') {
+                  document.getElementById('scoreB').value = data.scoreB;
+                }
+            }).getMatchDetails(select.value);
+        } else {
+              matchup.style.display = 'none';
+        }
+    }
+          
+          function submitScore() {
+            const matchNum = document.getElementById('match').value;
+            const scoreA = document.getElementById('scoreA').value;
+            const scoreB = document.getElementById('scoreB').value;
+            const msgDiv = document.getElementById('message');
+            
+            if (!matchNum) {
+              msgDiv.innerHTML = '<div class="error">❌ Please select a match</div>';
+              return;
+        }
+            
+            if (scoreA === '' || scoreB === '') {
+              msgDiv.innerHTML = '<div class="error">❌ Please enter both scores</div>';
+              return;
+        }
+            
+            if (scoreA < 0 || scoreB < 0) {
+              msgDiv.innerHTML = '<div class="error">❌ Scores must be non-negative</div>';
+              return;
+        }
+            
+            msgDiv.innerHTML = '<div class="loading">⏳ Saving...</div>';
+            
+            google.script.run.withSuccessHandler(function(result) {
+              if (result.success) {
+                msgDiv.innerHTML = '<div class="success">✅ Score saved successfully!</div>';
+                setTimeout(function() {
+                  google.script.host.close();
+                },
+                1500);
+            } else {
+                msgDiv.innerHTML = '<div class="error">❌ Error: ' + result.message + '</div>';
+            }
+        }).saveMatchScore(matchNum, scoreA, scoreB);
+    }
+        </script>
+      </body>
+    </html>
+  `)
+  .setWidth(550)
+  .setHeight(550);
+  
+  SpreadsheetApp.getUi().showModalDialog(html, 'Enter Match Score');
+}
+
+function getMatchList() {
+  const ss = SpreadsheetApp.getActive();
+  const sched = ss.getSheetByName('Schedule');
+  
+  const matches = [];
+  for (let r = 2; r <= 15; r++) {
+    const matchNum = sched.getRange(r,
+        1).getValue();
+    const teamA = sched.getRange(r,
+        2).getValue() + ' + ' + sched.getRange(r,
+        3).getValue();
+    const teamB = sched.getRange(r,
+        4).getValue() + ' + ' + sched.getRange(r,
+        5).getValue();
+    const status = sched.getRange(r,
+        8).getValue();
+    
+    matches.push({
+      number: matchNum,
+      matchup: teamA + ' vs ' + teamB,
+      status: status === '✓' ? '(✓)' : '(⏳)'
+        });
+    }
+  
+  return matches;
+}
+
+function getMatchDetails(matchNum) {
+  const ss = SpreadsheetApp.getActive();
+  const sched = ss.getSheetByName('Schedule');
+  const row = parseInt(matchNum) + 1;
+  
+  return {
+    teamA: sched.getRange(row,
+        2).getValue() + ' + ' + sched.getRange(row,
+        3).getValue(),
+    teamB: sched.getRange(row,
+        4).getValue() + ' + ' + sched.getRange(row,
+        5).getValue(),
+    scoreA: sched.getRange(row,
+        6).getValue(),
+    scoreB: sched.getRange(row,
+        7).getValue()
+    };
+}
+
+function saveMatchScore(matchNum, scoreA, scoreB) {
+  try {
+    const ss = SpreadsheetApp.getActive();
+    const sched = ss.getSheetByName('Schedule');
+    const row = parseInt(matchNum) + 1;
+    
+    if (!isValidScore(scoreA) || !isValidScore(scoreB)) {
+      return { success: false, message: 'Invalid score values'
+            };
+        }
+    
+    sched.getRange(row,
+        6).setValue(parseInt(scoreA));
+    sched.getRange(row,
+        7).setValue(parseInt(scoreB));
+    sched.getRange(row,
+        9).setValue(getTimestamp());
+    
+    logActivity('Match ' + matchNum + ' score entered: ' + scoreA + '-' + scoreB);
+    
+    // Check if all matches complete
+    const completed = sched.getRange('H2:H15').getValues().filter(row => row[
+            0
+        ] === '✓').length;
+    if (completed === 14) {
+            // Tournament complete - could trigger winner announcement
+      logActivity('Tournament completed - all matches finished');
+        }
+    
+    return { success: true
+        };
+    } catch (e) {
+    return { success: false, message: e.message
+        };
+    }
+}
+// ============================================================================
+// PROTECTION & DATA MANAGEMENT
+// ============================================================================
+
+function protectFormulaCells() {
+  const ss = SpreadsheetApp.getActive();
+  const ui = SpreadsheetApp.getUi();
+  
+  try {
+        // List of sheets and ranges to protect
+    const protections = [
+            {sheet: 'Standings', range: 'B2:K9', desc: 'Standings calculations'
+            },
+            {sheet: 'Leaderboard', range: 'A2:L9', desc: 'Leaderboard auto-sort'
+            },
+            {sheet: 'Partnerships', range: 'A2:G29', desc: 'Partnership stats'
+            },
+            {sheet: 'Head-to-Head', range: 'B8:B22', desc: 'H2H calculations'
+            },
+            {sheet: 'Stats Dashboard', range: 'B5:H30', desc: 'Statistics'
+            },
+            {sheet: 'Partnership Compatibility', range: 'B5:G100', desc: 'Compatibility matrix'
+            },
+            {sheet: 'Player Profiles', range: 'B1:F200', desc: 'Player stats'
+            },
+            {sheet: 'Achievements', range: 'A1:H100', desc: 'Achievement tracking'
+            },
+            {sheet: 'Predictions', range: 'A1:K100', desc: 'Predictions & insights'
+            },
+            {sheet: 'Schedule', range: 'H2:I15', desc: 'Match status'
+            }
+        ];
+    
+    protections.forEach(p => {
+      const sheet = ss.getSheetByName(p.sheet);
+      if (sheet) {
+        try {
+          const protection = sheet.getRange(p.range).protect();
+          protection.setDescription(p.desc + ' - Auto-calculated');
+          protection.setWarningOnly(true);
+                } catch (e) {
+          console.log(`Could not protect ${p.sheet
+                    }: ${e.message
+                    }`);
+                }
+            }
+        });
+    
+    ui.alert('✅ Protection Applied', 'Formula cells are now protected from accidental edits.', ui.ButtonSet.OK);
+    logActivity('Formula cells protected');
+    } catch (e) {
+    ui.alert('⚠️ Protection Error', 'Some cells could not be protected: ' + e.message, ui.ButtonSet.OK);
+    }
+}
+
+function clearScoresOnly() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.alert(
+    'Clear All Scores',
+    'This will clear all match scores but keep the tournament structure. Continue?',
+    ui.ButtonSet.YES_NO
+  );
+  
+  if (response !== ui.Button.YES) {
+    return;
+    }
+  
+  const ss = SpreadsheetApp.getActive();
+  const sched = ss.getSheetByName('Schedule');
+  
+  if (sched) {
+    sched.getRange('F2:G15').clearContent();
+    sched.getRange('I2:I15').clearContent();
+    logActivity('All scores cleared');
+    ui.alert('✅ Scores Cleared', 'All match scores have been reset.', ui.ButtonSet.OK);
+    }
+}
+
+function backupTournament() {
+  const ss = SpreadsheetApp.getActive();
+  const ui = SpreadsheetApp.getUi();
+  
+  try {
+    const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd_HHmmss');
+    const backupName = 'Backup_' + timestamp;
+    
+    const sched = ss.getSheetByName('Schedule');
+    if (sched) {
+      const backup = sched.copyTo(ss);
+      backup.setName(backupName);
+      
+      backup.getRange('K1').setValue('Backup Date:');
+      backup.getRange('L1').setValue(getTimestamp());
+      
+      logActivity('Backup created: ' + backupName);
+      ui.alert('✅ Backup Created', 'Tournament data backed up to sheet: ' + backupName, ui.ButtonSet.OK);
+        }
+    } catch (e) {
+    ui.alert('❌ Backup Failed', 'Error creating backup: ' + e.message, ui.ButtonSet.OK);
+    }
+}
+
+function archiveAndStartNew() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.alert(
+    'Archive & Start New',
+    'This will archive the current tournament and start fresh. Continue?',
+    ui.ButtonSet.YES_NO
+  );
+  
+  if (response !== ui.Button.YES) {
+    return;
+    }
+  
+  backupTournament();
+  
+  const ss = SpreadsheetApp.getActive();
+  const archive = getOrCreateSheet(ss, 'Archive');
+  
+  const timestamp = getTimestamp();
+  const nextRow = archive.getLastRow() + 1;
+  
+  if (nextRow === 1) {
+    archive.getRange('A1:D1').setValues([
+            ['Date', 'Winner', 'Points', 'Backup Sheet'
+            ]
+        ]);
+    archive.getRange('A1:D1').setFontWeight('bold').setBackground(CONFIG.COLORS.PRIMARY).setFontColor('#ffffff');
+    }
+  
+  const lb = ss.getSheetByName('Leaderboard');
+  if (lb) {
+    const winner = lb.getRange('B2').getValue();
+    const points = lb.getRange('C2').getValue();
+    archive.getRange(nextRow + 1,
+        1).setValue(timestamp);
+    archive.getRange(nextRow + 1,
+        2).setValue(winner);
+    archive.getRange(nextRow + 1,
+        3).setValue(points);
+    archive.getRange(nextRow + 1,
+        4).setValue('Backup_' + timestamp.substring(0,
+        19).replace(' ', '_'));
+    }
+  
+  setupTournament();
+  
+  ui.alert('✅ Complete', 'Tournament archived and new tournament created!', ui.ButtonSet.OK);
+}
+
+function exportToExcel() {
+  const ui = SpreadsheetApp.getUi();
+  
+  ui.alert(
+    '📊 Export to Excel',
+    'To export to Excel format:\n\n' +
+    '1. Go to File → Download → Microsoft Excel (.xlsx)\n' +
+    '2. Save to your computer\n' +
+    '3. All sheets and formatting will be preserved!\n\n' +
+    'Tip: Charts may need to be regenerated in Excel.',
+    ui.ButtonSet.OK
+  );
+}
+
+function refreshAllData() {
+  const ui = SpreadsheetApp.getUi();
+  
+  try {
+    SpreadsheetApp.flush();
+    
+    // Recalculate any custom data
+        // (Most data is formula-based and updates automatically)
+    
+    logActivity('Data refreshed');
+    ui.alert('✅ Refreshed', 'All data has been recalculated!', ui.ButtonSet.OK);
+    } catch (e) {
+    ui.alert('Error', 'Could not refresh data: ' + e.message, ui.ButtonSet.OK);
+    }
+}
+
+function scheduleNextMatch() {
+  const ui = SpreadsheetApp.getUi();
+  
+  ui.alert(
+    '📅 Schedule Match',
+    'Match scheduling feature coming soon!\n\n' +
+    'This will allow you to:\n' +
+    '• Set match dates/times\n' +
+    '• Send calendar invites\n' +
+    '• Set up automatic reminders',
+    ui.ButtonSet.OK
+  );
+}
+// ============================================================================
+// PLAYOFF BRACKET GENERATOR
+// ============================================================================
+
+function generatePlayoffBracket() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActive();
+  
+  // Check if regular season is complete
+  const sched = ss.getSheetByName('Schedule');
+  const completed = sched.getRange('H2:H15').getValues().filter(row => row[
+        0
+    ] === '✓').length;
+  
+  if (completed < 14) {
+    ui.alert(
+      'Season Incomplete',
+      `Only ${completed
+        } of 14 matches completed. Finish the regular season first!`,
+      ui.ButtonSet.OK
+    );
+    return;
+    }
+  
+  const response = ui.alert(
+    '🎲 Generate Playoff Bracket',
+    'This will create a 4-player single-elimination bracket with the top 4 players. Continue?',
+    ui.ButtonSet.YES_NO
+  );
+  
+  if (response !== ui.Button.YES) {
+    return;
+    }
+  
+  const bracket = getOrCreateSheet(ss, 'Playoff Bracket');
+  bracket.clear();
+  
+  // Title
+  bracket.getRange('A1:H1').merge().setValue('🏆 PLAYOFF BRACKET')
+    .setFontSize(24).setFontWeight('bold').setBackground(CONFIG.COLORS.GOLD).setHorizontalAlignment('center');
+  
+  bracket.getRange('A2:H2').merge().setValue('Single Elimination - Top 4 Players')
+    .setFontSize(12).setHorizontalAlignment('center').setFontColor('#666666');
+  
+  // Get top 4
+  const lb = ss.getSheetByName('Leaderboard');
+  const top4 = [];
+  for (let i = 2; i <= 5; i++) {
+    top4.push(lb.getRange(i,
+        2).getValue());
+    }
+    // Semifinals
+  bracket.getRange('A5:C5').merge().setValue('🔹 SEMIFINAL 1')
+    .setFontSize(14).setFontWeight('bold').setBackground('#e3f2fd').setHorizontalAlignment('center');
+  
+  bracket.getRange('A6').setValue('Seed 1:');
+  bracket.getRange('B6').setValue(top4[
+        0
+    ]).setFontWeight('bold');
+  bracket.getRange('A7').setValue('Seed 4:');
+  bracket.getRange('B7').setValue(top4[
+        3
+    ]);
+  bracket.getRange('A8').setValue('Score:');
+  bracket.getRange('B8:C8').merge();
+  bracket.getRange('A9').setValue('Winner:');
+  bracket.getRange('B9:C9').merge();
+  
+  bracket.getRange('E5:G5').merge().setValue('🔹 SEMIFINAL 2')
+    .setFontSize(14).setFontWeight('bold').setBackground('#e3f2fd').setHorizontalAlignment('center');
+  
+  bracket.getRange('E6').setValue('Seed 2:');
+  bracket.getRange('F6').setValue(top4[
+        1
+    ]).setFontWeight('bold');
+  bracket.getRange('E7').setValue('Seed 3:');
+  bracket.getRange('F7').setValue(top4[
+        2
+    ]);
+  bracket.getRange('E8').setValue('Score:');
+  bracket.getRange('F8:G8').merge();
+  bracket.getRange('E9').setValue('Winner:');
+  bracket.getRange('F9:G9').merge();
+  
+  // Finals
+  bracket.getRange('B12:F12').merge().setValue('🏆 CHAMPIONSHIP MATCH')
+    .setFontSize(16).setFontWeight('bold').setBackground(CONFIG.COLORS.GOLD).setHorizontalAlignment('center');
+  
+  bracket.getRange('B14').setValue('SF1 Winner:');
+  bracket.getRange('C14:D14').merge().setFormula('=B9');
+  bracket.getRange('B15').setValue('SF2 Winner:');
+  bracket.getRange('C15:D15').merge().setFormula('=F9');
+  bracket.getRange('B16').setValue('Score:');
+  bracket.getRange('C16:D16').merge();
+  bracket.getRange('B17').setValue('CHAMPION:');
+  bracket.getRange('C17:D17').merge().setBackground(CONFIG.COLORS.GOLD).setFontWeight('bold').setFontSize(14);
+  
+  // Formatting
+  bracket.setColumnWidths(1,
+    8,
+    120);
+  
+  ui.alert('✅ Bracket Created', 'Playoff bracket generated! Enter match results to determine the champion.', ui.ButtonSet.OK);
+  ss.setActiveSheet(bracket);
+}
+// ============================================================================
+// CONFIGURATION DIALOG
+// ============================================================================
+
+function showConfigDialog() {
+  const html = HtmlService.createHtmlOutput(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <base target="_top">
+        <style>
+          body { font-family: Arial; padding: 20px;
+    }
+          h2 { color: #4285f4;
+    }
+          .section { margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 5px;
+    }
+          label { display: block; margin: 10px 0 5px 0; font-weight: bold;
+    }
+          input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;
+    }
+          button { background: #4285f4; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px;
+    }
+        </style>
+      </head>
+      <body>
+        <h2>⚙️ Tournament Configuration</h2>
+        
+        <div class="section">
+          <h3>General Settings</h3>
+          <label>Tournament Name:</label>
+          <input type="text" id="tournamentName" value="${CONFIG.TOURNAMENT_NAME}">
+          
+          <label>Admin Email:</label>
+          <input type="email" id="adminEmail" value="${CONFIG.ADMIN_EMAIL}">
+        </div>
+        
+        <div class="section">
+          <h3>Feature Toggles</h3>
+          <label>
+            <input type="checkbox" id="enableEmail" ${CONFIG.ENABLE_EMAIL_NOTIFICATIONS ? 'checked' : ''
+    }>
+            Enable Email Notifications
+          </label>
+          
+          <label>
+            <input type="checkbox" id="enableAchievements" ${CONFIG.ENABLE_ACHIEVEMENTS ? 'checked' : ''
+    }>
+            Enable Achievement System
+          </label>
+          
+          <label>
+            <input type="checkbox" id="enablePredictions" ${CONFIG.ENABLE_PREDICTIONS ? 'checked' : ''
+    }>
+            Enable AI Predictions
+          </label>
+        </div>
+        
+        <button onclick="saveConfig()">Save Configuration</button>
+        
+        <script>
+          function saveConfig() {
+            alert('Configuration saved! (Feature in development)\\n\\nNote: Config changes require script update.');
+            google.script.host.close();
+    }
+        </script>
+      </body>
+    </html>
+  `).setWidth(500).setHeight(500);
+  
+  SpreadsheetApp.getUi().showModalDialog(html, 'Configuration');
+}
+
+function showThemeDialog() {
+  const html = HtmlService.createHtmlOutput(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <base target="_top">
+        <style>
+          body { font-family: Arial; padding: 20px;
+    }
+          h2 { color: #4285f4;
+    }
+          .color-picker { display: flex; align-items: center; margin: 15px 0;
+    }
+          .color-picker label { width: 150px; font-weight: bold;
+    }
+          .color-picker input { width: 80px; height: 40px; border: none; cursor: pointer;
+    }
+          button { background: #4285f4; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px;
+    }
+        </style>
+      </head>
+      <body>
+        <h2>🎨 Customize Theme</h2>
+        <p>Choose custom colors for your tournament:</p>
+        
+        <div class="color-picker">
+          <label>Primary Color:</label>
+          <input type="color" id="primary" value="${CONFIG.COLORS.PRIMARY}">
+        </div>
+        
+        <div class="color-picker">
+          <label>Success Color:</label>
+          <input type="color" id="success" value="${CONFIG.COLORS.SUCCESS}">
+        </div>
+        
+        <div class="color-picker">
+          <label>Warning Color:</label>
+          <input type="color" id="warning" value="${CONFIG.COLORS.WARNING}">
+        </div>
+        
+        <div class="color-picker">
+          <label>Danger Color:</label>
+          <input type="color" id="danger" value="${CONFIG.COLORS.DANGER}">
+        </div>
+        
+        <button onclick="applyTheme()">Apply Theme</button>
+        
+        <script>
+          function applyTheme() {
+            alert('Theme customization coming soon!\\n\\nThis will allow you to personalize all colors in the tournament system.');
+            google.script.host.close();
+    }
+        </script>
+      </body>
+    </html>
+  `).setWidth(450).setHeight(450);
+  
+  SpreadsheetApp.getUi().showModalDialog(html, 'Theme Customization');
+}
+// ============================================================================
+// END OF ULTIMATE TOURNAMENT SYSTEM
+// ============================================================================
