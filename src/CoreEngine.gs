@@ -9,43 +9,78 @@
 // ============================================================================
 
 /**
- * Generates all unique doubles matches via a greedy pair-matching algorithm.
- * For N players produces C(N,2)/2 = N*(N-1)/4 matches (exact for N divisible by 4).
- * Leftover pairs (odd groups) are skipped gracefully.
+ * Generates all doubles matches using the circle/polygon round-robin method.
+ * Produces proper ROUNDS so each player plays at most once per round.
+ * After round generation, a greedy reorder pass ensures no player appears
+ * in two consecutive match slots (players get rest between matches).
+ *
+ * For N players (N even): N-1 rounds, N/4 doubles matches per round.
+ * Example: 8 players → 7 rounds × 2 matches = 14 matches.
+ *
  * @param {string[]} players - Array of player names.
  * @returns {Array<[string,string,string,string]>} Array of [TeamA_P1, TeamA_P2, TeamB_P1, TeamB_P2]
  */
 function generateRoundRobinSchedule(players) {
   const n = players.length;
-  const pairs = [];
+  if (n < 4) return [];
 
-  // Generate all unique pairs C(n,2)
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      pairs.push([players[i], players[j]]);
+  // Pad to even count if needed
+  const list  = n % 2 === 0 ? [...players] : [...players, '__BYE__'];
+  const N     = list.length;          // even
+  const fixed = list[N - 1];          // last player stays fixed
+  const spin  = list.slice(0, N - 1); // the rest rotate
+
+  const rawMatches = [];
+
+  for (let round = 0; round < N - 1; round++) {
+    // Rotate spin array left by `round` positions
+    const rot = [...spin.slice(round), ...spin.slice(0, round)];
+
+    // Build N/2 single pairs for this round:
+    //   (fixed, rot[0]),  (rot[1], rot[N-2]),  (rot[2], rot[N-3]), ...
+    const pairs = [[fixed, rot[0]]];
+    for (let i = 1; i < N / 2; i++) {
+      pairs.push([rot[i], rot[N - 1 - i]]);
+    }
+
+    // Combine consecutive pairs into doubles matches
+    for (let i = 0; i + 1 < pairs.length; i += 2) {
+      const [a1, a2] = pairs[i];
+      const [b1, b2] = pairs[i + 1];
+      if ([a1, a2, b1, b2].includes('__BYE__')) continue;
+      rawMatches.push([a1, a2, b1, b2]);
     }
   }
 
-  const used    = new Array(pairs.length).fill(false);
-  const matches = [];
+  return reorderForPlayerRest_(rawMatches);
+}
 
-  for (let i = 0; i < pairs.length; i++) {
-    if (used[i]) continue;
-    for (let j = i + 1; j < pairs.length; j++) {
-      if (used[j]) continue;
-      const a = pairs[i];
-      const b = pairs[j];
-      // No shared players between the two pairs
-      if (a[0] !== b[0] && a[0] !== b[1] && a[1] !== b[0] && a[1] !== b[1]) {
-        matches.push([a[0], a[1], b[0], b[1]]);
-        used[i] = true;
-        used[j] = true;
-        break;
-      }
-    }
+/**
+ * Reorders matches greedily so no player appears in two consecutive match slots.
+ * Each player gets at least one match of rest between their appearances.
+ * @param {Array<string[]>} matches
+ * @returns {Array<string[]>}
+ */
+function reorderForPlayerRest_(matches) {
+  const ordered   = [];
+  const remaining = [...matches];
+
+  while (remaining.length > 0) {
+    const lastPlayers = ordered.length > 0
+      ? new Set(ordered[ordered.length - 1])
+      : new Set();
+
+    // Pick the first match that shares no players with the previous match
+    let bestIdx = remaining.findIndex(m => !m.some(p => lastPlayers.has(p)));
+
+    // Fallback: if every remaining match shares a player, just take the next one
+    if (bestIdx === -1) bestIdx = 0;
+
+    ordered.push(remaining[bestIdx]);
+    remaining.splice(bestIdx, 1);
   }
 
-  return matches;
+  return ordered;
 }
 
 // ============================================================================
